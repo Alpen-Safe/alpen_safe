@@ -1,0 +1,53 @@
+name: Build and Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["dev"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: check types
+        run: deno check main.ts
+
+      - name: format
+        run: deno fmt --check
+
+      - name: test
+        run: deno test
+
+  test-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local development setup
+        run: supabase db start
+
+      - name: Verify generated types are checked in
+        run: |
+          supabase gen types typescript --local > database.types.ts
+          if ! git diff --ignore-space-at-eol --exit-code --quiet database.types.ts; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git diff
+            exit 1
+          fi
+
+      - name: Run tests
+        run: supabase test db

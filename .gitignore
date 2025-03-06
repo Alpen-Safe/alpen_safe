@@ -2,3 +2,5 @@
 .env*
 supabase/.branches
 supabase/.temp
+cov
+cov.*
