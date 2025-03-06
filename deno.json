@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts",
+    "dev": "deno run --allow-env --allow-read --watch main.ts",
     "fmt": "deno fmt --ignore=database.types.ts --ignore=README.md --watch"
   },
   "imports": {
