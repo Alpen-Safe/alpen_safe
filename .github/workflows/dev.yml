@@ -22,7 +22,7 @@ jobs:
         run: deno check main.ts
 
       - name: format
-        run: deno fmt --ignore=database.types.ts --ignore=README.md --check 
+        run: deno fmt --ignore=database.types.ts --ignore=README.md --check
 
       - name: test
         run: deno test
