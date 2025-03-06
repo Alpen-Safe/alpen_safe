@@ -2,16 +2,19 @@
 
 ## Run
 
+1. Start supabase
 ```
 supabase start
 ```
 
+2. Start dev watcher
 ```
 deno task dev
 ```
 
 ## Develop
 
+Continoutsly format the source codde
 ```
 deno task fmt
 ```
