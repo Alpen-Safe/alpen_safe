@@ -6,6 +6,16 @@
 supabase start
 ```
 
+```
+deno task dev
+```
+
+## Develop
+
+```
+deno task fmt
+```
+
 ## Updating the DB schema
 Every DB schema update has to be done trough migrations. The full schema history from inception is available under `supabase/migrations` folder. Follow those steps to create a new migration.
 
