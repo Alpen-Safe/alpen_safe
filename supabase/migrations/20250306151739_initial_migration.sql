@@ -31,13 +31,13 @@ COMMENT ON COLUMN MULTI_SIG_WALLETS.server_keys IS 'Number of server keys used f
 CREATE TABLE server_signers (
     account_id SERIAL PRIMARY KEY,
     wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id),
-    derivation_path TEXT NOT NULL
+    account_node_derivation_path TEXT NOT NULL
 );
 
 COMMENT ON TABLE SERVER_SIGNERS IS 'Table to store server signers';
 COMMENT ON COLUMN SERVER_SIGNERS.wallet_id IS 'Foreign key to the multi-sig wallet';
 COMMENT ON COLUMN SERVER_SIGNERS.account_id IS 'The {account} derivation parameter from BIP84';
-COMMENT ON COLUMN SERVER_SIGNERS.derivation_path IS 'The full derivation path for the server signer';
+COMMENT ON COLUMN SERVER_SIGNERS.account_node_derivation_path IS 'The full derivation path for the server signer';
 
 
 alter table public.server_signers enable row level security;
@@ -50,8 +50,14 @@ CREATE TABLE user_signers (
     wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id),
     user_id UUID NOT NULL REFERENCES auth.users,
     public_key_hex TEXT NOT NULL,
-    derivation_path TEXT
+    account_node_derivation_path TEXT
 );
+
+COMMENT ON TABLE user_signers IS 'Table to store user signers';
+COMMENT ON COLUMN user_signers.wallet_id IS 'Foreign key to the multi-sig wallet';
+COMMENT ON COLUMN user_signers.user_id IS 'Foreign key to the user';
+COMMENT ON COLUMN user_signers.public_key_hex IS 'The public key of the user';
+COMMENT ON COLUMN user_signers.account_node_derivation_path IS 'The full derivation path for the user signer';
 
 alter table public.user_signers enable row level security;
 

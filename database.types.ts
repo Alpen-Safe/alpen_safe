@@ -73,17 +73,17 @@ export type Database = {
       server_signers: {
         Row: {
           account_id: number
-          derivation_path: string
+          account_node_derivation_path: string
           wallet_id: string
         }
         Insert: {
           account_id?: number
-          derivation_path: string
+          account_node_derivation_path: string
           wallet_id: string
         }
         Update: {
           account_id?: number
-          derivation_path?: string
+          account_node_derivation_path?: string
           wallet_id?: string
         }
         Relationships: [
@@ -98,19 +98,19 @@ export type Database = {
       }
       user_signers: {
         Row: {
-          derivation_path: string | null
+          account_node_derivation_path: string | null
           public_key_hex: string
           user_id: string
           wallet_id: string
         }
         Insert: {
-          derivation_path?: string | null
+          account_node_derivation_path?: string | null
           public_key_hex: string
           user_id: string
           wallet_id: string
         }
         Update: {
-          derivation_path?: string | null
+          account_node_derivation_path?: string | null
           public_key_hex?: string
           user_id?: string
           wallet_id?: string

@@ -19,6 +19,30 @@
         "--allow-all"
       ],
       "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
+
+      /* modified: descriptive name */
+      "name": "Debug tests",
+
+      /* modified: was generated as "pwa-node", but VS Code shows me
+      a diagnostic warning for that value: "Please use type node instead(2)" */
+      "type": "node",
+
+      /* disabled specific entrypoint */
+      // "program": "${workspaceFolder}/main.ts",
+
+      "cwd": "${workspaceFolder}",
+
+      "runtimeExecutable": "/Users/daniel/.deno/bin/deno",
+
+      "runtimeArgs": [
+        "test",
+        "--inspect-brk",
+        "--allow-all"
+      ],
+      "attachSimplePort": 9229
     }
   ]
 }
