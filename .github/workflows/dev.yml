@@ -24,8 +24,8 @@ jobs:
       - name: format
         run: deno fmt --ignore=database.types.ts --ignore=README.md --check
 
-      - name: test --allow-all
-        run: deno test
+      - name: test
+        run: deno test --allow-all
 
   test-db:
     runs-on: ubuntu-latest
