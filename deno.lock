@@ -19,7 +19,6 @@
     "npm:bip32@^5.0.0-rc.0": "5.0.0-rc.0",
     "npm:bitcoinjs-lib@^6.1.7": "6.1.7",
     "npm:dotenv@^16.4.7": "16.4.7",
-    "npm:ecpair@^3.0.0-rc.0": "3.0.0-rc.0",
     "npm:sinon@*": "19.0.2",
     "npm:sinon@^19.0.2": "19.0.2",
     "npm:tiny-secp256k1@^2.2.3": "2.2.3"
@@ -209,14 +208,6 @@
     "dotenv@16.4.7": {
       "integrity": "sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ=="
     },
-    "ecpair@3.0.0-rc.0": {
-      "integrity": "sha512-y2CTHgI2MMeYiXd8IFgxgORWR1PpyeUACek4viZm12VcbooWhVnqFEHISO0NAiZKJb7CqXEOz5bnhv/UI0ULzw==",
-      "dependencies": [
-        "uint8array-tools@0.0.8",
-        "valibot",
-        "wif"
-      ]
-    },
     "has-flag@4.0.0": {
       "integrity": "sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ=="
     },
@@ -361,7 +352,6 @@
       "npm:bip32@^5.0.0-rc.0",
       "npm:bitcoinjs-lib@^6.1.7",
       "npm:dotenv@^16.4.7",
-      "npm:ecpair@^3.0.0-rc.0",
       "npm:sinon@^19.0.2",
       "npm:tiny-secp256k1@^2.2.3"
     ]

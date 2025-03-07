@@ -2,13 +2,11 @@ import BIP32Factory from "bip32";
 import * as bitcoin from "bitcoinjs-lib";
 import * as ecc from "tiny-secp256k1";
 import { Network, networks } from "bitcoinjs-lib";
-import { ECPairFactory } from "ecpair";
 import Supabase from "./supabase.ts";
 import { Buffer } from "node:buffer";
 import { BIP32Interface } from "bip32";
 
 const bip32 = BIP32Factory(ecc);
-const ECPair = ECPairFactory(ecc);
 
 const MAX_ACCOUNT_INDEX = 2147483647; // 2^31 - 1
 
@@ -240,16 +238,6 @@ class MultiSigWallet {
     }
 
     return addresses;
-  }
-
-  private validatePublicKeyHex(publicKeyHex: string) {
-    try {
-      const publicKeyBuffer = Buffer.from(publicKeyHex, "hex");
-      ECPair.fromPublicKey(publicKeyBuffer); // Using imported ECPair
-      return publicKeyBuffer.length === 33 || publicKeyBuffer.length === 65;
-    } catch (_error) {
-      return false;
-    }
   }
 
   //   /**
