@@ -1,9 +1,4 @@
-import {
-  assertEquals,
-  assertExists,
-  assertNotEquals,
-  assertThrows,
-} from "jsr:@std/assert";
+import { expect } from "jsr:@std/expect";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
 import { SupabaseClient } from "@supabase/supabase-js";
@@ -35,9 +30,9 @@ Deno.test("validateAccountIndex - valid indices", () => {
     "validateAccountIndex",
   );
 
-  assertEquals(validateAccountIndex(0), true);
-  assertEquals(validateAccountIndex(1), true);
-  assertEquals(validateAccountIndex(2147483647), true);
+  expect(validateAccountIndex(0)).toBe(true);
+  expect(validateAccountIndex(1)).toBe(true);
+  expect(validateAccountIndex(2147483647)).toBe(true);
 });
 
 Deno.test("validateAccountIndex - negative indices", () => {
@@ -47,7 +42,7 @@ Deno.test("validateAccountIndex - negative indices", () => {
     "validateAccountIndex",
   );
 
-  assertEquals(validateAccountIndex(-1), false);
+  expect(validateAccountIndex(-1)).toBe(false);
 });
 
 Deno.test("validateAccountIndex - non-integer indices", () => {
@@ -57,7 +52,7 @@ Deno.test("validateAccountIndex - non-integer indices", () => {
     "validateAccountIndex",
   );
 
-  assertEquals(validateAccountIndex(1.5), false);
+  expect(validateAccountIndex(1.5)).toBe(false);
 });
 
 Deno.test("validateAccountIndex - indices beyond max", () => {
@@ -67,7 +62,7 @@ Deno.test("validateAccountIndex - indices beyond max", () => {
     "validateAccountIndex",
   );
 
-  assertEquals(validateAccountIndex(2147483648), false);
+  expect(validateAccountIndex(2147483648)).toBe(false);
 });
 
 // Test suite for deriveAccountNode
@@ -79,9 +74,9 @@ Deno.test("deriveAccountNode - derives node successfully", () => {
   );
 
   const accountNode = deriveAccountNode(0);
-  assertExists(accountNode);
-  assertExists(accountNode.publicKey);
-  assertExists(accountNode.privateKey);
+  expect(accountNode).toBeDefined();
+  expect(accountNode.publicKey).toBeDefined();
+  expect(accountNode.privateKey).toBeDefined();
 });
 
 Deno.test("deriveAccountNode - different nodes for different accounts", () => {
@@ -94,10 +89,10 @@ Deno.test("deriveAccountNode - different nodes for different accounts", () => {
   const accountNode0 = deriveAccountNode(0);
   const accountNode1 = deriveAccountNode(1);
 
-  assertNotEquals(
-    Buffer.from(accountNode0.publicKey).toString("hex"),
-    Buffer.from(accountNode1.publicKey).toString("hex"),
-  );
+  const pubKey0 = Buffer.from(accountNode0.publicKey).toString("hex");
+  const pubKey1 = Buffer.from(accountNode1.publicKey).toString("hex");
+
+  expect(pubKey0).not.toBe(pubKey1);
 });
 
 Deno.test("deriveAccountNode - throws on invalid account index", () => {
@@ -107,11 +102,7 @@ Deno.test("deriveAccountNode - throws on invalid account index", () => {
     "deriveAccountNode",
   );
 
-  assertThrows(
-    () => deriveAccountNode(-1),
-    Error,
-    "Account index must be between",
-  );
+  expect(() => deriveAccountNode(-1)).toThrow("Account index must be between");
 });
 
 // Test suite for getServerKeyPair
@@ -123,9 +114,9 @@ Deno.test("getServerKeyPair - derives key pair for receive address", () => {
 
   const keyPair = getServerKeyPair(0, 0, false);
 
-  assertExists(keyPair.publicKey);
-  assertExists(keyPair.privateKey);
-  assertEquals(keyPair.derivationPath, "m/84'/1'/0'/0/0");
+  expect(keyPair.publicKey).toBeDefined();
+  expect(keyPair.privateKey).toBeDefined();
+  expect(keyPair.derivationPath).toBe("m/84'/1'/0'/0/0");
 });
 
 Deno.test("getServerKeyPair - derives key pair for change address", () => {
@@ -136,9 +127,9 @@ Deno.test("getServerKeyPair - derives key pair for change address", () => {
 
   const keyPair = getServerKeyPair(0, 0, true);
 
-  assertExists(keyPair.publicKey);
-  assertExists(keyPair.privateKey);
-  assertEquals(keyPair.derivationPath, "m/84'/1'/0'/1/0");
+  expect(keyPair.publicKey).toBeDefined();
+  expect(keyPair.privateKey).toBeDefined();
+  expect(keyPair.derivationPath).toBe("m/84'/1'/0'/1/0");
 });
 
 Deno.test("getServerKeyPair - different keys for different indices", () => {
@@ -150,10 +141,10 @@ Deno.test("getServerKeyPair - different keys for different indices", () => {
   const keyPair0 = getServerKeyPair(0, 0, false);
   const keyPair1 = getServerKeyPair(0, 1, false);
 
-  assertNotEquals(
-    Buffer.from(keyPair0.publicKey).toString("hex"),
-    Buffer.from(keyPair1.publicKey).toString("hex"),
-  );
+  const pubKey0 = Buffer.from(keyPair0.publicKey).toString("hex");
+  const pubKey1 = Buffer.from(keyPair1.publicKey).toString("hex");
+
+  expect(pubKey0).not.toBe(pubKey1);
 });
 
 Deno.test("getServerKeyPair - throws on invalid address index", () => {
@@ -162,9 +153,7 @@ Deno.test("getServerKeyPair - throws on invalid address index", () => {
     (accountId: number, addressIndex: number, change?: boolean) => any
   >(wallet, "getServerKeyPair");
 
-  assertThrows(
-    () => getServerKeyPair(0, -1, false),
-    Error,
+  expect(() => getServerKeyPair(0, -1, false)).toThrow(
     "Address index must be between",
   );
 });
@@ -174,8 +163,8 @@ Deno.test("getServerAccountXpub - returns valid xpub", () => {
   const wallet = setupWallet();
   const xpub = wallet.getServerAccountXpub(0);
 
-  assertExists(xpub);
-  assertEquals(xpub.startsWith("tpub"), true); // Should be testnet pub key
+  expect(xpub).toBeDefined();
+  expect(xpub.startsWith("tpub")).toBe(true); // Should be testnet pub key
 });
 
 Deno.test("getServerAccountXpub - different xpubs for different accounts", () => {
@@ -183,15 +172,13 @@ Deno.test("getServerAccountXpub - different xpubs for different accounts", () =>
   const xpub0 = wallet.getServerAccountXpub(0);
   const xpub1 = wallet.getServerAccountXpub(1);
 
-  assertNotEquals(xpub0, xpub1);
+  expect(xpub0).not.toBe(xpub1);
 });
 
 Deno.test("getServerAccountXpub - throws on invalid account index", () => {
   const wallet = setupWallet();
 
-  assertThrows(
-    () => wallet.getServerAccountXpub(-1),
-    Error,
+  expect(() => wallet.getServerAccountXpub(-1)).toThrow(
     "Account index must be between",
   );
 });
@@ -207,7 +194,7 @@ Deno.test("createWalletDescriptor - creates valid descriptor with user xpubs", (
   const serverXpub = wallet.getServerAccountXpub(0);
   const expectedFormat = `wsh(multi(2,${serverXpub}/0/*,${userXpub}/0/*))`;
 
-  assertEquals(descriptor, expectedFormat);
+  expect(descriptor).toBe(expectedFormat);
 });
 
 Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
@@ -221,12 +208,12 @@ Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
 
   // Should contain all xpubs
   for (const xpub of userXpubs) {
-    assertEquals(descriptor.includes(xpub), true);
+    expect(descriptor).toContain(xpub);
   }
 
   // Should have correct number of commas (number of xpubs)
   const commas = descriptor.match(/,/g) || [];
-  assertEquals(commas.length - 1, userXpubs.length); // server xpub + user xpubs - 1
+  expect(commas.length - 1).toBe(userXpubs.length);
 });
 
 // Test suite for deriveAddressFromXpubs
@@ -238,11 +225,11 @@ Deno.test("deriveAddressFromXpubs - derives receive address from xpubs", () => {
 
   const addressInfo = wallet.deriveAddressFromXpubs(0, [userXpub], 0, false);
 
-  assertExists(addressInfo.address);
-  assertEquals(addressInfo.address.startsWith("tb1"), true); // Testnet bech32 address
-  assertExists(addressInfo.witnessScript);
-  assertEquals(addressInfo.serverKeyDerivationPath, "m/84'/1'/0'/0/0");
-  assertExists(addressInfo.serverPublicKey);
+  expect(addressInfo.address).toBeDefined();
+  expect(addressInfo.address.startsWith("tb1")).toBe(true); // Testnet bech32 address
+  expect(addressInfo.witnessScript).toBeDefined();
+  expect(addressInfo.serverKeyDerivationPath).toBe("m/84'/1'/0'/0/0");
+  expect(addressInfo.serverPublicKey).toBeDefined();
 });
 
 Deno.test("deriveAddressFromXpubs - derives change address from xpubs", () => {
@@ -253,9 +240,9 @@ Deno.test("deriveAddressFromXpubs - derives change address from xpubs", () => {
 
   const addressInfo = wallet.deriveAddressFromXpubs(0, [userXpub], 0, true);
 
-  assertExists(addressInfo.address);
-  assertExists(addressInfo.witnessScript);
-  assertEquals(addressInfo.serverKeyDerivationPath, "m/84'/1'/0'/1/0");
+  expect(addressInfo.address).toBeDefined();
+  expect(addressInfo.witnessScript).toBeDefined();
+  expect(addressInfo.serverKeyDerivationPath).toBe("m/84'/1'/0'/1/0");
 });
 
 Deno.test("deriveAddressFromXpubs - different addresses for different indices", () => {
@@ -266,7 +253,7 @@ Deno.test("deriveAddressFromXpubs - different addresses for different indices", 
   const address0 = wallet.deriveAddressFromXpubs(0, [userXpub], 0, false);
   const address1 = wallet.deriveAddressFromXpubs(0, [userXpub], 1, false);
 
-  assertNotEquals(address0.address, address1.address);
+  expect(address0.address).not.toBe(address1.address);
 });
 
 Deno.test("deriveAddressFromXpubs - handles multiple xpubs for multisig", () => {
@@ -278,8 +265,8 @@ Deno.test("deriveAddressFromXpubs - handles multiple xpubs for multisig", () => 
 
   const addressInfo = wallet.deriveAddressFromXpubs(0, userXpubs, 0, false);
 
-  assertExists(addressInfo.address);
-  assertExists(addressInfo.witnessScript);
+  expect(addressInfo.address).toBeDefined();
+  expect(addressInfo.witnessScript).toBeDefined();
 });
 
 Deno.test("deriveAddressFromXpubs - throws on invalid address index", () => {
@@ -287,22 +274,16 @@ Deno.test("deriveAddressFromXpubs - throws on invalid address index", () => {
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  assertThrows(
-    () => wallet.deriveAddressFromXpubs(0, [userXpub], -1, false),
-    Error,
-    "Address index must be between",
-  );
+  expect(() => wallet.deriveAddressFromXpubs(0, [userXpub], -1, false))
+    .toThrow("Address index must be between");
 });
 
 Deno.test("deriveAddressFromXpubs - throws on invalid xpub", () => {
   const wallet = setupWallet();
   const invalidXpub = "invalid-xpub";
 
-  assertThrows(
-    () => wallet.deriveAddressFromXpubs(0, [invalidXpub], 0, false),
-    Error,
-    "Failed to derive key from xpub",
-  );
+  expect(() => wallet.deriveAddressFromXpubs(0, [invalidXpub], 0, false))
+    .toThrow("Failed to derive key from xpub");
 });
 
 // Test suite for generateAddresses
@@ -314,14 +295,14 @@ Deno.test("generateAddresses - generates multiple receive addresses", () => {
 
   const addresses = wallet.generateAddresses(0, [userXpub], 0, count, false);
 
-  assertEquals(addresses.length, count);
+  expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
-    assertEquals(addresses[i].serverKeyDerivationPath, `m/84'/1'/0'/0/${i}`);
+    expect(addresses[i].serverKeyDerivationPath).toBe(`m/84'/1'/0'/0/${i}`);
   }
 
   // Each address should be unique
   const uniqueAddresses = new Set(addresses.map((info) => info.address));
-  assertEquals(uniqueAddresses.size, count);
+  expect(uniqueAddresses.size).toBe(count);
 });
 
 Deno.test("generateAddresses - generates multiple change addresses", () => {
@@ -332,9 +313,9 @@ Deno.test("generateAddresses - generates multiple change addresses", () => {
 
   const addresses = wallet.generateAddresses(0, [userXpub], 0, count, true);
 
-  assertEquals(addresses.length, count);
+  expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
-    assertEquals(addresses[i].serverKeyDerivationPath, `m/84'/1'/0'/1/${i}`);
+    expect(addresses[i].serverKeyDerivationPath).toBe(`m/84'/1'/0'/1/${i}`);
   }
 });
 
@@ -353,10 +334,9 @@ Deno.test("generateAddresses - generates addresses with custom start index", () 
     false,
   );
 
-  assertEquals(addresses.length, count);
+  expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
-    assertEquals(
-      addresses[i].serverKeyDerivationPath,
+    expect(addresses[i].serverKeyDerivationPath).toBe(
       `m/84'/1'/0'/0/${startIndex + i}`,
     );
   }
@@ -370,9 +350,9 @@ Deno.test("generateAddresses - generates addresses for different accounts", () =
   const addresses1 = wallet.generateAddresses(0, [userXpub], 0, 1, false);
   const addresses2 = wallet.generateAddresses(1, [userXpub], 0, 1, false);
 
-  assertEquals(addresses1[0].serverKeyDerivationPath, "m/84'/1'/0'/0/0");
-  assertEquals(addresses2[0].serverKeyDerivationPath, "m/84'/1'/1'/0/0");
+  expect(addresses1[0].serverKeyDerivationPath).toBe("m/84'/1'/0'/0/0");
+  expect(addresses2[0].serverKeyDerivationPath).toBe("m/84'/1'/1'/0/0");
 
   // Addresses should be different
-  assertNotEquals(addresses1[0].address, addresses2[0].address);
+  expect(addresses1[0].address).not.toBe(addresses2[0].address);
 });
