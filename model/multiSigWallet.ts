@@ -125,6 +125,7 @@ class MultiSigWallet {
    */
   public createWalletDescriptor(
     accountId: number,
+    m: number,
     userXpubs: string[],
   ): string {
     const serverXpub = this.getServerAccountXpub(accountId);
@@ -135,7 +136,7 @@ class MultiSigWallet {
       ...userXpubs.map((xpub) => `${xpub}/0/*`),
     ].join(",");
 
-    return `wsh(multi(2,${xpubPaths}))`;
+    return `wsh(multi(${m},${xpubPaths}))`;
   }
 
   /**
@@ -144,6 +145,7 @@ class MultiSigWallet {
    */
   public deriveAddressFromXpubs(
     accountId: number,
+    m: number,
     userXpubs: string[],
     addressIndex: number,
     change: boolean = false,
@@ -188,7 +190,7 @@ class MultiSigWallet {
 
     // 4. Create P2WSH multisig address
     const p2ms = bitcoin.payments.p2ms({
-      m: 2,
+      m,
       pubkeys: pubKeys,
       network: this.network,
     });
@@ -219,6 +221,7 @@ class MultiSigWallet {
    */
   public generateAddresses(
     accountId: number,
+    m: number,
     userXpubs: string[],
     startIndex: number = 0,
     count: number = 10,
@@ -230,6 +233,7 @@ class MultiSigWallet {
       const addressIndex = startIndex + i;
       const address = this.deriveAddressFromXpubs(
         accountId,
+        m,
         userXpubs,
         addressIndex,
         change,

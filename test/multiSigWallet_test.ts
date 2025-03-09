@@ -189,7 +189,7 @@ Deno.test("createWalletDescriptor - creates valid descriptor with user xpubs", (
   // Use a testnet xpub for testing
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
-  const descriptor = wallet.createWalletDescriptor(0, [userXpub]);
+  const descriptor = wallet.createWalletDescriptor(0, 2, [userXpub]);
 
   const serverXpub = wallet.getServerAccountXpub(0);
   const expectedFormat = `wsh(multi(2,${serverXpub}/0/*,${userXpub}/0/*))`;
@@ -204,7 +204,7 @@ Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
     "tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R",
   ];
 
-  const descriptor = wallet.createWalletDescriptor(0, userXpubs);
+  const descriptor = wallet.createWalletDescriptor(0, 2, userXpubs);
 
   // Should contain all xpubs
   for (const xpub of userXpubs) {
@@ -214,6 +214,9 @@ Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
   // Should have correct number of commas (number of xpubs)
   const commas = descriptor.match(/,/g) || [];
   expect(commas.length - 1).toBe(userXpubs.length);
+  expect(descriptor).toBe(
+    "wsh(multi(2,tpubDC8msFGeGuwnKG9Upg7DM2b4DaRqg3CUZa5g8v2SRQ6K4NSkxUgd7HsL2XVWbVm39yBA4LAxysQAm397zwQSQoQgewGiYZqrA9DsP4zbQ1M/0/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/0/*))",
+  );
 });
 
 // Test suite for deriveAddressFromXpubs
@@ -223,7 +226,7 @@ Deno.test("deriveAddressFromXpubs - derives receive address from xpubs", () => {
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const addressInfo = wallet.deriveAddressFromXpubs(0, [userXpub], 0, false);
+  const addressInfo = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 0, false);
 
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.address.startsWith("tb1")).toBe(true); // Testnet bech32 address
@@ -238,7 +241,7 @@ Deno.test("deriveAddressFromXpubs - derives change address from xpubs", () => {
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const addressInfo = wallet.deriveAddressFromXpubs(0, [userXpub], 0, true);
+  const addressInfo = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 0, true);
 
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.witnessScript).toBeDefined();
@@ -250,8 +253,8 @@ Deno.test("deriveAddressFromXpubs - different addresses for different indices", 
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const address0 = wallet.deriveAddressFromXpubs(0, [userXpub], 0, false);
-  const address1 = wallet.deriveAddressFromXpubs(0, [userXpub], 1, false);
+  const address0 = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 0, false);
+  const address1 = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 1, false);
 
   expect(address0.address).not.toBe(address1.address);
 });
@@ -263,7 +266,7 @@ Deno.test("deriveAddressFromXpubs - handles multiple xpubs for multisig", () => 
     "tpubDCugpgy2nPkNo7sUE63qo4Z5FUyYqyJx1N6b3inPojJNdSn9Sd52aqiP4N2Afq8C1p8zRtATz2WMsmGkjyaLDBfB6y4pxTWaXEFL3z1Tb9J",
   ];
 
-  const addressInfo = wallet.deriveAddressFromXpubs(0, userXpubs, 0, false);
+  const addressInfo = wallet.deriveAddressFromXpubs(0, 2, userXpubs, 0, false);
 
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.witnessScript).toBeDefined();
@@ -274,7 +277,7 @@ Deno.test("deriveAddressFromXpubs - throws on invalid address index", () => {
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  expect(() => wallet.deriveAddressFromXpubs(0, [userXpub], -1, false))
+  expect(() => wallet.deriveAddressFromXpubs(0, 2, [userXpub], -1, false))
     .toThrow("Address index must be between");
 });
 
@@ -282,7 +285,7 @@ Deno.test("deriveAddressFromXpubs - throws on invalid xpub", () => {
   const wallet = setupWallet();
   const invalidXpub = "invalid-xpub";
 
-  expect(() => wallet.deriveAddressFromXpubs(0, [invalidXpub], 0, false))
+  expect(() => wallet.deriveAddressFromXpubs(0, 2, [invalidXpub], 0, false))
     .toThrow("Failed to derive key from xpub");
 });
 
@@ -293,7 +296,7 @@ Deno.test("generateAddresses - generates multiple receive addresses", () => {
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
   const count = 3;
 
-  const addresses = wallet.generateAddresses(0, [userXpub], 0, count, false);
+  const addresses = wallet.generateAddresses(0, 2, [userXpub], 0, count, false);
 
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
@@ -311,7 +314,7 @@ Deno.test("generateAddresses - generates multiple change addresses", () => {
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
   const count = 2;
 
-  const addresses = wallet.generateAddresses(0, [userXpub], 0, count, true);
+  const addresses = wallet.generateAddresses(0, 2, [userXpub], 0, count, true);
 
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
@@ -328,6 +331,7 @@ Deno.test("generateAddresses - generates addresses with custom start index", () 
 
   const addresses = wallet.generateAddresses(
     0,
+    2,
     [userXpub],
     startIndex,
     count,
@@ -347,8 +351,8 @@ Deno.test("generateAddresses - generates addresses for different accounts", () =
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const addresses1 = wallet.generateAddresses(0, [userXpub], 0, 1, false);
-  const addresses2 = wallet.generateAddresses(1, [userXpub], 0, 1, false);
+  const addresses1 = wallet.generateAddresses(0, 2, [userXpub], 0, 1, false);
+  const addresses2 = wallet.generateAddresses(1, 2, [userXpub], 0, 1, false);
 
   expect(addresses1[0].serverKeyDerivationPath).toBe("m/84'/1'/0'/0/0");
   expect(addresses2[0].serverKeyDerivationPath).toBe("m/84'/1'/1'/0/0");
