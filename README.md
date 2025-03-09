@@ -14,7 +14,7 @@ deno task dev
 
 ## Develop
 
-Continoutsly format the source codde
+Continuously format the source codde
 ```
 deno task fmt
 ```
@@ -35,4 +35,10 @@ supabase db reset
 ```
 npx supabase gen types --lang=typescript --local > database.types.ts
 ```
+
+or run them both together
+```
+supabase db reset && npx supabase gen types --lang=typescript --local > database.types.ts
+```
+
 5. You can now commit your changes which will auto deploy your migrations to respecitve environments

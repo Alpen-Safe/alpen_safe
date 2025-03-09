@@ -37,35 +37,35 @@ export type Database = {
       multi_sig_wallets: {
         Row: {
           chain: Database["public"]["Enums"]["supported_chains"]
-          created_at: string | null
+          created_at: string
           id: string
           m: number
           n: number
           name: string
           server_keys: number
-          updated_at: string | null
+          updated_at: string
           user_owner: string
         }
         Insert: {
           chain?: Database["public"]["Enums"]["supported_chains"]
-          created_at?: string | null
+          created_at?: string
           id?: string
           m: number
           n: number
           name: string
           server_keys: number
-          updated_at?: string | null
+          updated_at?: string
           user_owner: string
         }
         Update: {
           chain?: Database["public"]["Enums"]["supported_chains"]
-          created_at?: string | null
+          created_at?: string
           id?: string
           m?: number
           n?: number
           name?: string
           server_keys?: number
-          updated_at?: string | null
+          updated_at?: string
           user_owner?: string
         }
         Relationships: []

@@ -8,8 +8,8 @@ CREATE TABLE multi_sig_wallets (
     n INT NOT NULL,
     chain supported_chains NOT NULL DEFAULT 'bitcoin',
     server_keys INT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 alter table public.multi_sig_wallets enable row level security;
