@@ -312,13 +312,14 @@ Deno.test("generateAddresses - generates multiple change addresses", () => {
   const wallet = setupWallet();
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
-  const count = 2;
+  const count = 3;
 
   const addresses = wallet.generateAddresses(0, 2, [userXpub], 0, count, true);
 
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
     expect(addresses[i].serverKeyDerivationPath).toBe(`m/84'/1'/0'/1/${i}`);
+    expect(addresses[i].address.startsWith("tb1")).toBe(true);
   }
 });
 

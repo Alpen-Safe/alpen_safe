@@ -243,60 +243,6 @@ class MultiSigWallet {
 
     return addresses;
   }
-
-  //   /**
-  //    * Build a unique multisig wallet based on the user's public key and account id.
-  //    * Internally we generate a key pair for the user and combine it with their own key.
-  //    */
-  //   public createMultisig(
-  //     accountIndex: number,
-  //     userPublicKeysHex: string[],
-  //     addressIndex: number,
-  //   ): WalletInfo {
-  //     for (const userPublicKeyHex of userPublicKeysHex) {
-  //       if (!this.validatePublicKey(userPublicKeyHex)) {
-  //         throw new Error("Invalid user public key");
-  //       }
-  //     }
-
-  //     const serverKeyPair = this.getServerKeyPair(accountIndex, addressIndex);
-  //     const userPublicKeys = userPublicKeysHex.map((hex) =>
-  //       Buffer.from(hex, "hex")
-  //     );
-
-  //     // Sort public keys (required by protocol)
-  //     const pubKeys = [serverKeyPair.publicKey, ...userPublicKeys].sort((a, b) =>
-  //       Buffer.compare(a, b)
-  //     );
-
-  //     // Create native SegWit multisig (P2WSH)
-  //     const p2ms = bitcoin.payments.p2ms({
-  //       m: 2,
-  //       pubkeys: pubKeys,
-  //       network: this.network,
-  //     });
-
-  //     if (!p2ms.output) {
-  //       throw new Error("Failed to create P2MS output");
-  //     }
-
-  //     // Wrap in P2WSH
-  //     const p2wsh = bitcoin.payments.p2wsh({
-  //       redeem: p2ms,
-  //       network: this.network,
-  //     });
-
-  //     if (!p2wsh.address) {
-  //       throw new Error("Failed to create P2WSH address");
-  //     }
-
-  //     return {
-  //       address: p2wsh.address,
-  //       witnessScript: p2ms.output,
-  //       serverKeyDerivationPath: serverKeyPair.derivationPath,
-  //       serverPublicKey: serverKeyPair.publicKey.toString("hex"),
-  //     };
-  //   }
 }
 
 export default MultiSigWallet;
