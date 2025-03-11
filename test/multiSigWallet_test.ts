@@ -1,6 +1,8 @@
 import { expect } from "jsr:@std/expect";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
+import * as bitcoin from "bitcoinjs-lib";
+import { TxOutput, UTXO } from "../model/multiSigWallet.ts";
 import { SupabaseClient } from "@supabase/supabase-js";
 import Supabase from "../model/supabase.ts";
 import MultiSigWallet from "../model/multiSigWallet.ts";
@@ -360,4 +362,225 @@ Deno.test("generateAddresses - generates addresses for different accounts", () =
 
   // Addresses should be different
   expect(addresses1[0].address).not.toBe(addresses2[0].address);
+});
+
+// Test suite for createUnsignedTransaction
+Deno.test("createUnsignedTransaction - creates valid transaction with sufficient funds", () => {
+  const wallet = setupWallet();
+
+  // Create mock witnessScript
+  const witnessScript = bitcoin.script.compile([
+    2, // m value (2-of-n)
+    Buffer.from(
+      "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+      "hex",
+    ), // dummy pubkey 1
+    Buffer.from(
+      "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+      "hex",
+    ), // dummy pubkey 2
+    Buffer.from(
+      "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+      "hex",
+    ), // dummy pubkey 3
+    3, // n value (3 total keys)
+    bitcoin.script.OPS.OP_CHECKMULTISIG,
+  ]);
+
+  // Mock UTXOs
+  const utxos: UTXO[] = [
+    {
+      txid: "0000000000000000000000000000000000000000000000000000000000000001",
+      vout: 0,
+      value: 1000000, // 0.01 BTC
+      address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
+      witnessScript,
+      derivationPath: "m/84'/1'/0'/0/0",
+    },
+  ];
+
+  // Mock outputs
+  const outputs: TxOutput[] = [
+    {
+      address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      value: 500000, // 0.005 BTC
+    },
+  ];
+
+  // Create transaction
+  const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs, 10);
+
+  // Verify transaction was created correctly
+  expect(unsignedTx).toBeDefined();
+  expect(unsignedTx.psbtBase64).toBeDefined();
+  expect(unsignedTx.fee).toBeGreaterThan(0);
+
+  // Verify fee is reasonable
+  expect(unsignedTx.fee).toBeLessThan(100000); // Less than 0.001 BTC
+
+  // Total input should be greater than total output + fee
+  expect(1000000).toBeGreaterThanOrEqual(500000 + unsignedTx.fee);
+});
+
+Deno.test("createUnsignedTransaction - throws error with insufficient funds", () => {
+  const wallet = setupWallet();
+
+  // Create mock witnessScript
+  const witnessScript = bitcoin.script.compile([
+    2, // m value
+    Buffer.from(
+      "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+      "hex",
+    ),
+    Buffer.from(
+      "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+      "hex",
+    ),
+    2, // n value
+    bitcoin.script.OPS.OP_CHECKMULTISIG,
+  ]);
+
+  // Mock UTXOs with small amount
+  const utxos: UTXO[] = [
+    {
+      txid: "0000000000000000000000000000000000000000000000000000000000000001",
+      vout: 0,
+      value: 1000, // Very small amount
+      address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
+      witnessScript,
+      derivationPath: "m/84'/1'/0'/0/0",
+    },
+  ];
+
+  // Mock outputs with larger amount
+  const outputs: TxOutput[] = [
+    {
+      address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      value: 5000, // More than available
+    },
+  ];
+
+  // Should throw error for insufficient funds
+  expect(() => wallet.createUnsignedTransaction(utxos, outputs, 10)).toThrow(
+    "Insufficient funds",
+  );
+});
+
+Deno.test("createUnsignedTransaction - throws error with no UTXOs", () => {
+  const wallet = setupWallet();
+
+  // Empty UTXOs array
+  const utxos: UTXO[] = [];
+
+  // Mock outputs
+  const outputs: TxOutput[] = [
+    {
+      address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      value: 5000,
+    },
+  ];
+
+  // Should throw error for no UTXOs
+  expect(() => wallet.createUnsignedTransaction(utxos, outputs, 10)).toThrow(
+    "No UTXOs provided",
+  );
+});
+
+Deno.test("createUnsignedTransaction - throws error with no outputs", () => {
+  const wallet = setupWallet();
+
+  // Create mock witnessScript
+  const witnessScript = bitcoin.script.compile([
+    2, // m value
+    Buffer.from(
+      "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+      "hex",
+    ),
+    Buffer.from(
+      "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+      "hex",
+    ),
+    2, // n value
+    bitcoin.script.OPS.OP_CHECKMULTISIG,
+  ]);
+
+  // Mock UTXOs
+  const utxos: UTXO[] = [
+    {
+      txid: "0000000000000000000000000000000000000000000000000000000000000001",
+      vout: 0,
+      value: 100000,
+      address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
+      witnessScript,
+      derivationPath: "m/84'/1'/0'/0/0",
+    },
+  ];
+
+  // Empty outputs array
+  const outputs: TxOutput[] = [];
+
+  // Should throw error for no outputs
+  expect(() => wallet.createUnsignedTransaction(utxos, outputs, 10)).toThrow(
+    "No outputs provided",
+  );
+});
+
+Deno.test("createUnsignedTransaction - creates transaction with multiple inputs and outputs", () => {
+  const wallet = setupWallet();
+
+  // Create mock witnessScript
+  const witnessScript = bitcoin.script.compile([
+    2, // m value
+    Buffer.from(
+      "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+      "hex",
+    ),
+    Buffer.from(
+      "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+      "hex",
+    ),
+    2, // n value
+    bitcoin.script.OPS.OP_CHECKMULTISIG,
+  ]);
+
+  // Mock multiple UTXOs
+  const utxos: UTXO[] = [
+    {
+      txid: "0000000000000000000000000000000000000000000000000000000000000001",
+      vout: 0,
+      value: 500000,
+      address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
+      witnessScript,
+      derivationPath: "m/84'/1'/0'/0/0",
+    },
+    {
+      txid: "0000000000000000000000000000000000000000000000000000000000000002",
+      vout: 1,
+      value: 300000,
+      address: "tb1qsh3y9q3kw2vz45rmw9l5hnswy96qnghmktk6dk",
+      witnessScript,
+      derivationPath: "m/84'/1'/0'/0/1",
+    },
+  ];
+
+  // Mock multiple outputs
+  const outputs: TxOutput[] = [
+    {
+      address: "tb1q8pknw0rdfuwwrzmr85aehhsecx2wfj0ca8j7hd",
+      value: 400000,
+    },
+    {
+      address: "tb1qytfsqjk04v9e8fus2xnmmzr083q9k7c7ra8vts",
+      value: 300000,
+    },
+  ];
+
+  // Create transaction
+  const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs, 10);
+
+  // Verify transaction was created correctly
+  expect(unsignedTx).toBeDefined();
+  expect(unsignedTx.psbtBase64).toBeDefined();
+  expect(unsignedTx.fee).toBeGreaterThan(0);
+  expect(unsignedTx.fee).toBeLessThan(100000); // Less than 0.001 BTC
 });
