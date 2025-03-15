@@ -178,7 +178,7 @@ class MultiSigWallet {
    * Derive an address using xpubs (compatible with hardware wallets)
    * This method ensures hardware wallets will recognize the address
    */
-  public deriveAddressFromXpubs(
+  public deriveWalletFromXpubs(
     accountId: number,
     m: number,
     userXpubs: string[],
@@ -266,7 +266,7 @@ class MultiSigWallet {
 
     for (let i = 0; i < count; i++) {
       const addressIndex = startIndex + i;
-      const address = this.deriveAddressFromXpubs(
+      const address = this.deriveWalletFromXpubs(
         accountId,
         m,
         userXpubs,
@@ -357,11 +357,13 @@ class MultiSigWallet {
    * Add a signature to a PSBT using the server's private key
    * @param psbtBase64 Base64-encoded PSBT
    * @param accountId Account ID for key derivation
+   * @param m Number of signatures required
    * @returns The PSBT with the server's signature added
    */
   public signTransactionWithServer(
     psbtBase64: string,
     accountId: number,
+    m: number,
   ): SignedTx {
     // Parse the PSBT
     const psbt = bitcoin.Psbt.fromBase64(psbtBase64, { network: this.network });
@@ -369,19 +371,8 @@ class MultiSigWallet {
     // Get total inputs to determine required signatures
     const totalInputs = psbt.data.inputs.length;
 
-    // Find required signatures from one of the inputs' witnessScript
-    let totalSignaturesRequired = 2; // Default to 2 (most common)
-
-    for (const input of psbt.data.inputs) {
-      if (input.witnessScript) {
-        // Parse the witness script to find the m value
-        const chunks = bitcoin.script.decompile(input.witnessScript);
-        if (chunks && chunks.length > 0 && typeof chunks[0] === "number") {
-          totalSignaturesRequired = chunks[0] as number;
-          break;
-        }
-      }
-    }
+    // TODO: Get this from db
+    const totalSignaturesRequired = m;
 
     let signaturesAdded = 0;
 

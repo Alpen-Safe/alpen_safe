@@ -221,14 +221,14 @@ Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
   );
 });
 
-// Test suite for deriveAddressFromXpubs
-Deno.test("deriveAddressFromXpubs - derives receive address from xpubs", () => {
+// Test suite for deriveWalletFromXpubs
+Deno.test("deriveWalletFromXpubs - derives receive address from xpubs", () => {
   const wallet = setupWallet();
   // Mock user xpub for testnet
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const addressInfo = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 0, false);
+  const addressInfo = wallet.deriveWalletFromXpubs(0, 2, [userXpub], 0, false);
 
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.address.startsWith("tb1")).toBe(true); // Testnet bech32 address
@@ -237,57 +237,57 @@ Deno.test("deriveAddressFromXpubs - derives receive address from xpubs", () => {
   expect(addressInfo.serverPublicKey).toBeDefined();
 });
 
-Deno.test("deriveAddressFromXpubs - derives change address from xpubs", () => {
+Deno.test("deriveWalletFromXpubs - derives change address from xpubs", () => {
   const wallet = setupWallet();
   // Mock user xpub for testnet
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const addressInfo = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 0, true);
+  const addressInfo = wallet.deriveWalletFromXpubs(0, 2, [userXpub], 0, true);
 
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.witnessScript).toBeDefined();
   expect(addressInfo.serverKeyDerivationPath).toBe("m/84'/1'/0'/1/0");
 });
 
-Deno.test("deriveAddressFromXpubs - different addresses for different indices", () => {
+Deno.test("deriveWalletFromXpubs - different addresses for different indices", () => {
   const wallet = setupWallet();
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const address0 = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 0, false);
-  const address1 = wallet.deriveAddressFromXpubs(0, 2, [userXpub], 1, false);
+  const address0 = wallet.deriveWalletFromXpubs(0, 2, [userXpub], 0, false);
+  const address1 = wallet.deriveWalletFromXpubs(0, 2, [userXpub], 1, false);
 
   expect(address0.address).not.toBe(address1.address);
 });
 
-Deno.test("deriveAddressFromXpubs - handles multiple xpubs for multisig", () => {
+Deno.test("deriveWalletFromXpubs - handles multiple xpubs for multisig", () => {
   const wallet = setupWallet();
   const userXpubs = [
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba",
     "tpubDCugpgy2nPkNo7sUE63qo4Z5FUyYqyJx1N6b3inPojJNdSn9Sd52aqiP4N2Afq8C1p8zRtATz2WMsmGkjyaLDBfB6y4pxTWaXEFL3z1Tb9J",
   ];
 
-  const addressInfo = wallet.deriveAddressFromXpubs(0, 2, userXpubs, 0, false);
+  const addressInfo = wallet.deriveWalletFromXpubs(0, 2, userXpubs, 0, false);
 
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.witnessScript).toBeDefined();
 });
 
-Deno.test("deriveAddressFromXpubs - throws on invalid address index", () => {
+Deno.test("deriveWalletFromXpubs - throws on invalid address index", () => {
   const wallet = setupWallet();
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  expect(() => wallet.deriveAddressFromXpubs(0, 2, [userXpub], -1, false))
+  expect(() => wallet.deriveWalletFromXpubs(0, 2, [userXpub], -1, false))
     .toThrow("Address index must be between");
 });
 
-Deno.test("deriveAddressFromXpubs - throws on invalid xpub", () => {
+Deno.test("deriveWalletFromXpubs - throws on invalid xpub", () => {
   const wallet = setupWallet();
   const invalidXpub = "invalid-xpub";
 
-  expect(() => wallet.deriveAddressFromXpubs(0, 2, [invalidXpub], 0, false))
+  expect(() => wallet.deriveWalletFromXpubs(0, 2, [invalidXpub], 0, false))
     .toThrow("Failed to derive key from xpub");
 });
 
@@ -583,4 +583,61 @@ Deno.test("createUnsignedTransaction - creates transaction with multiple inputs 
   expect(unsignedTx.psbtBase64).toBeDefined();
   expect(unsignedTx.fee).toBeGreaterThan(0);
   expect(unsignedTx.fee).toBeLessThan(100000); // Less than 0.001 BTC
+});
+
+// Test suite for signTransactionWithServer
+Deno.test("signTransactionWithServer - adds server signature to PSBT", () => {
+  const accountIndex = 0;
+  const userXpubs = [
+    "tpubDCugpgy2nPkNo7sUE63qo4Z5FUyYqyJx1N6b3inPojJNdSn9Sd52aqiP4N2Afq8C1p8zRtATz2WMsmGkjyaLDBfB6y4pxTWaXEFL3z1Tb9J",
+    "tpubDDpybz5Toi7KGYgyZXtsjxWFBgjVjFrrNeNPuMALvDQLAexWkz6UV8gQjQmDrngmkxLpm6tDWejubcFNQMuVpeCuxJD1ALphBM53CLqfAUf",
+  ];
+  const m = 2;
+
+  const wallet = setupWallet();
+  const { address, witnessScript, serverKeyDerivationPath } = wallet
+    .deriveWalletFromXpubs(
+      accountIndex,
+      m,
+      userXpubs,
+      0,
+      false,
+    );
+
+  // Mock UTXOs
+  const utxos: UTXO[] = [
+    {
+      address,
+      txid: "0000000000000000000000000000000000000000000000000000000000000001",
+      vout: 0,
+      value: 1000000, // 0.01 BTC
+      witnessScript,
+      derivationPath: serverKeyDerivationPath,
+    },
+  ];
+
+  // Mock outputs
+  const outputs: TxOutput[] = [
+    {
+      address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      value: 500000, // 0.005 BTC
+    },
+  ];
+
+  // Create unsigned transaction
+  const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs, 10);
+
+  // Sign transaction with server key
+  const signedTx = wallet.signTransactionWithServer(
+    unsignedTx.psbtBase64,
+    accountIndex,
+    m,
+  );
+
+  // Verify signature was added
+  expect(signedTx).toBeDefined();
+  expect(signedTx.psbtBase64).toBeDefined();
+  expect(signedTx.signaturesAdded).toBeGreaterThan(0);
+  expect(signedTx.totalSignaturesRequired).toBe(2);
+  expect(signedTx.isComplete).toBe(false); // Should not be complete as it needs more signatures
 });
