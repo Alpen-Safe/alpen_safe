@@ -45,6 +45,7 @@ export type Database = {
           server_keys: number
           updated_at: string
           user_owner: string
+          wallet_descriptor: string
         }
         Insert: {
           chain?: Database["public"]["Enums"]["supported_chains"]
@@ -56,6 +57,7 @@ export type Database = {
           server_keys: number
           updated_at?: string
           user_owner: string
+          wallet_descriptor: string
         }
         Update: {
           chain?: Database["public"]["Enums"]["supported_chains"]
@@ -67,6 +69,7 @@ export type Database = {
           server_keys?: number
           updated_at?: string
           user_owner?: string
+          wallet_descriptor?: string
         }
         Relationships: []
       }
@@ -99,21 +102,21 @@ export type Database = {
       user_signers: {
         Row: {
           account_node_derivation_path: string | null
-          public_key_hex: string
           user_id: string
           wallet_id: string
+          xpub: string
         }
         Insert: {
           account_node_derivation_path?: string | null
-          public_key_hex: string
           user_id: string
           wallet_id: string
+          xpub: string
         }
         Update: {
           account_node_derivation_path?: string | null
-          public_key_hex?: string
           user_id?: string
           wallet_id?: string
+          xpub?: string
         }
         Relationships: [
           {

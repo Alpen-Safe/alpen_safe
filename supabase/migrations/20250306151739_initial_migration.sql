@@ -8,6 +8,7 @@ CREATE TABLE multi_sig_wallets (
     n INT NOT NULL,
     chain supported_chains NOT NULL DEFAULT 'bitcoin',
     server_keys INT NOT NULL,
+    wallet_descriptor TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
@@ -27,6 +28,7 @@ COMMENT ON COLUMN MULTI_SIG_WALLETS.created_at IS 'Timestamp when the multi-sig 
 COMMENT ON COLUMN MULTI_SIG_WALLETS.updated_at IS 'Timestamp when the multi-sig wallet was last updated';
 COMMENT ON COLUMN MULTI_SIG_WALLETS.chain IS 'Blockchain network the multi-sig wallet is on';
 COMMENT ON COLUMN MULTI_SIG_WALLETS.server_keys IS 'Number of server keys used for the multi-sig wallet';
+COMMENT ON COLUMN MULTI_SIG_WALLETS.wallet_descriptor IS 'The wallet descriptor for the multi-sig wallet';
 
 CREATE TABLE server_signers (
     account_id SERIAL PRIMARY KEY,
@@ -49,14 +51,14 @@ using (false);
 CREATE TABLE user_signers (
     wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id),
     user_id UUID NOT NULL REFERENCES auth.users,
-    public_key_hex TEXT NOT NULL,
+    xpub TEXT NOT NULL,
     account_node_derivation_path TEXT
 );
 
 COMMENT ON TABLE user_signers IS 'Table to store user signers';
 COMMENT ON COLUMN user_signers.wallet_id IS 'Foreign key to the multi-sig wallet';
 COMMENT ON COLUMN user_signers.user_id IS 'Foreign key to the user';
-COMMENT ON COLUMN user_signers.public_key_hex IS 'The public key of the user';
+COMMENT ON COLUMN user_signers.xpub IS 'The public key of the user';
 COMMENT ON COLUMN user_signers.account_node_derivation_path IS 'The full derivation path for the user signer';
 
 alter table public.user_signers enable row level security;

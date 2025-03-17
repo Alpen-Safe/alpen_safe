@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --allow-env --allow-read --watch main.ts",
+    "dev": "deno run --allow-env --allow-read --allow-net --watch main.ts",
     "fmt": "deno fmt --ignore=database.types.ts --ignore=README.md --watch",
     "check": "deno check main.ts"
   },
@@ -11,6 +11,8 @@
     "bitcoinjs-lib": "npm:bitcoinjs-lib@^6.1.7",
     "dotenv": "npm:dotenv@^16.4.7",
     "ecpair": "npm:ecpair@^3.0.0",
+    "express": "npm:express@^4.21.2",
+    "express-validator": "npm:express-validator@^7.2.1",
     "sinon": "npm:sinon@^19.0.2",
     "tiny-secp256k1": "npm:tiny-secp256k1@^2.2.3"
   }
