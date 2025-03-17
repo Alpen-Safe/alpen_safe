@@ -1,12 +1,12 @@
 /**
  * Bitcoin Wallet Seed Generator
- * 
+ *
  * This script generates a cryptographically secure random seed
  * for a Bitcoin wallet in hexadecimal format (256-bit).
  */
 
 // Import the crypto module for secure random number generation
-import * as crypto from 'node:crypto';
+import * as crypto from "node:crypto";
 
 /**
  * Generates a 256-bit (32-byte) random seed in hexadecimal format
@@ -15,19 +15,19 @@ import * as crypto from 'node:crypto';
 function generateBitcoinSeed(): string {
   // Standard Bitcoin wallets use 256-bit (32-byte) seeds for maximum security
   const byteLength = 32; // 256 bits = 32 bytes
-  
+
   // Generate cryptographically strong pseudo-random bytes
   const randomBytes = crypto.randomBytes(byteLength);
-  
+
   // Convert the bytes to a hexadecimal string
-  const hexSeed = randomBytes.toString('hex');
-  
+  const hexSeed = randomBytes.toString("hex");
+
   return hexSeed;
 }
 
 // Generate a 256-bit (32-byte) seed
 const seed = generateBitcoinSeed();
-console.log('256-bit Bitcoin Seed:');
+console.log("256-bit Bitcoin Seed:");
 console.log(seed);
 
 /**
