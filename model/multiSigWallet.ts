@@ -49,7 +49,6 @@ interface SignedTx {
   psbtBase64: string;
   isComplete: boolean;
   signaturesAdded: number;
-  totalSignaturesRequired: number;
 }
 
 interface BroadcastResult {
@@ -371,9 +370,6 @@ class MultiSigWallet {
     // Get total inputs to determine required signatures
     const totalInputs = psbt.data.inputs.length;
 
-    // TODO: Get this from db
-    const totalSignaturesRequired = m;
-
     let signaturesAdded = 0;
 
     // Sign each input with the appropriate server key
@@ -422,7 +418,6 @@ class MultiSigWallet {
       psbtBase64: psbt.toBase64(),
       isComplete,
       signaturesAdded,
-      totalSignaturesRequired,
     };
   }
 

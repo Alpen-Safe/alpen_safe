@@ -638,6 +638,5 @@ Deno.test("signTransactionWithServer - adds server signature to PSBT", () => {
   expect(signedTx).toBeDefined();
   expect(signedTx.psbtBase64).toBeDefined();
   expect(signedTx.signaturesAdded).toBeGreaterThan(0);
-  expect(signedTx.totalSignaturesRequired).toBe(2);
   expect(signedTx.isComplete).toBe(false); // Should not be complete as it needs more signatures
 });
