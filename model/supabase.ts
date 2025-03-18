@@ -37,8 +37,19 @@ class Supabase {
   };
 
   createWallet = async (params: CreateWalletParams) => {
-    const { userId, walletName, m, n, chain, walletDescriptor, serverSigners, userPublicKeys, serverSignerId, serverSignerDerivationPath } = params;
-  
+    const {
+      userId,
+      walletName,
+      m,
+      n,
+      chain,
+      walletDescriptor,
+      serverSigners,
+      userPublicKeys,
+      serverSignerId,
+      serverSignerDerivationPath,
+    } = params;
+
     const convertedKeys = objectToSnake(userPublicKeys);
     const { error, data } = await this.supabase.rpc("create_wallet", {
       _user_id: userId,
@@ -52,13 +63,13 @@ class Supabase {
       _server_signer_derivation_path: serverSignerDerivationPath,
       _user_public_keys: convertedKeys,
     });
-  
+
     if (error) {
       throw new Error(error.message);
     }
-  
+
     return data;
-  }
+  };
 }
 
 export default Supabase;
