@@ -49,25 +49,60 @@ create policy none_shall_pass on public.SERVER_SIGNERS
 for select
 using (false);
 
-CREATE TABLE user_signers (
+CREATE TABLE public_keys (
     id SERIAL PRIMARY KEY,
-    wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id),
     user_id UUID NOT NULL REFERENCES auth.users,
-    xpub TEXT NOT NULL,
+    xpub TEXT UNIQUE NOT NULL,
     account_node_derivation_path TEXT
 );
 
+COMMENT ON TABLE public_keys IS 'Table to store public keys for users';
+COMMENT ON COLUMN public_keys.user_id IS 'Foreign key to the user';
+COMMENT ON COLUMN public_keys.xpub IS 'The public key of the user';
+COMMENT ON COLUMN public_keys.account_node_derivation_path IS 'the full derivation path for the user';
+
+alter table public.public_keys enable row level security;
+
+create policy none_shall_pass on public.PUBLIC_KEYS
+for select
+using (false);
+
+CREATE TABLE user_signers (
+    public_key_id INT NOT NULL REFERENCES public_keys(id),
+    wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id)
+);
+
 COMMENT ON TABLE user_signers IS 'Table to store user signers';
+COMMENT ON COLUMN user_signers.public_key_id IS 'Foreign key to the public key';
 COMMENT ON COLUMN user_signers.wallet_id IS 'Foreign key to the multi-sig wallet';
-COMMENT ON COLUMN user_signers.user_id IS 'Foreign key to the user';
-COMMENT ON COLUMN user_signers.xpub IS 'The public key of the user';
-COMMENT ON COLUMN user_signers.account_node_derivation_path IS 'The full derivation path for the user signer';
 
 alter table public.user_signers enable row level security;
 
 create policy none_shall_pass on public.USER_SIGNERS
 for select
 using (false);
+
+CREATE FUNCTION get_or_create_public_key(
+    _user_id UUID,
+    _xpub TEXT,
+    _account_node_derivation_path TEXT
+) RETURNS INT AS $$
+DECLARE
+    _public_key_id INT;
+BEGIN
+    SELECT id INTO _public_key_id
+    FROM public_keys
+    WHERE xpub = _xpub;
+
+    IF _public_key_id IS NULL THEN
+        INSERT INTO public_keys (user_id, xpub, account_node_derivation_path)
+        VALUES (_user_id, _xpub, _account_node_derivation_path)
+        RETURNING id INTO _public_key_id;
+    END IF;
+
+    RETURN _public_key_id;
+END;
+$$ LANGUAGE plpgsql;
 
 
 CREATE FUNCTION create_wallet(
@@ -83,23 +118,30 @@ CREATE FUNCTION create_wallet(
     _user_public_keys JSONB[]
 ) RETURNS UUID AS $$
 DECLARE
-    wallet_id UUID;
-    user_public_key JSONB;
+    _wallet_id UUID;
+    _user_public_key JSONB;
+    _public_key_id INT;
 BEGIN
     INSERT INTO multi_sig_wallets (user_owner, name, m, n, chain, wallet_descriptor, server_signers)
     VALUES (_user_id, _wallet_name, _m, _n, _chain, _wallet_descriptor, _server_signers)
-    RETURNING id INTO wallet_id;
+    RETURNING id INTO _wallet_id;
 
-    FOREACH user_public_key IN ARRAY _user_public_keys
+    FOREACH _user_public_key IN ARRAY _user_public_keys
     LOOP
-        INSERT INTO user_signers (wallet_id, user_id, public_key, account_node_derivation_path)
-        VALUES (wallet_id, _user_id, user_public_key->>'public_key', user_public_key->>'path');
+        SELECT get_or_create_public_key(
+            _user_id, 
+            _user_public_key->>'xpub', 
+            _user_public_key->>'path'
+        ) INTO _public_key_id;
+
+        INSERT INTO user_signers (public_key_id, wallet_id)
+        VALUES (_public_key_id, _wallet_id);
     END LOOP;
 
     UPDATE server_signers
-    SET wallet_id = wallet_id, account_node_derivation_path = _server_signer_derivation_path
+    SET wallet_id = _wallet_id, account_node_derivation_path = _server_signer_derivation_path
     WHERE account_id = _server_signer_id;
 
-    RETURN wallet_id;
+    RETURN _wallet_id;
 END;
 $$ LANGUAGE plpgsql;

@@ -3,6 +3,7 @@ import {
   SERVER_SEED,
   SUPABASE_URL,
   SUPABSE_SERVICE_KEY,
+  PORT,
 } from "./conf.ts";
 import { createClient } from "@supabase/supabase-js";
 import Supabase from "./model/supabase.ts";
@@ -23,11 +24,14 @@ const walletManager = new WalletManager({ multiSigWallet, supabase });
 const walletController = new WalletController({ walletManager });
 
 const app = express();
+app.use(express.json());
 
-app.get(
+app.post(
   "/user/create-wallet",
   walletController.createWalletValidator,
   walletController.create2Of3Wallet,
 );
 
-app.listen(3000);
+app.listen(PORT);
+
+console.log(`Server running on port ${PORT}`);

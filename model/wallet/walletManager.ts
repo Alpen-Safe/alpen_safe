@@ -33,10 +33,12 @@ class WalletManager {
       throw new Error(`expected ${n - 1} keys, got ${userXPubs.length}`);
     }
 
+    console.log(`creating ${m} of ${n} wallet for user ${userId}...`);
+
     const reservedServerSigner = await this.supabase.reserveServerSigner();
     const { account_id } = reservedServerSigner;
 
-    const xpubs = userXPubs.map((xpub) => xpub.publicKey);
+    const xpubs = userXPubs.map((xpub) => xpub.xpub);
     const { walletDescriptor, serverDerivationPath } = this.multiSigWallet
       .createWalletDescriptor(
         account_id,
@@ -56,6 +58,8 @@ class WalletManager {
       serverSignerDerivationPath: serverDerivationPath,
       userPublicKeys: userXPubs,
     });
+
+    console.log(`created ${m} of ${n} wallet with id ${walletId} for user ${userId}`);
 
     return {
       walletId,

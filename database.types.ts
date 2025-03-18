@@ -73,6 +73,27 @@ export type Database = {
         }
         Relationships: []
       }
+      public_keys: {
+        Row: {
+          account_node_derivation_path: string | null
+          id: number
+          user_id: string
+          xpub: string
+        }
+        Insert: {
+          account_node_derivation_path?: string | null
+          id?: number
+          user_id: string
+          xpub: string
+        }
+        Update: {
+          account_node_derivation_path?: string | null
+          id?: number
+          user_id?: string
+          xpub?: string
+        }
+        Relationships: []
+      }
       server_signers: {
         Row: {
           account_id: number
@@ -104,27 +125,25 @@ export type Database = {
       }
       user_signers: {
         Row: {
-          account_node_derivation_path: string | null
-          id: number
-          user_id: string
+          public_key_id: number
           wallet_id: string
-          xpub: string
         }
         Insert: {
-          account_node_derivation_path?: string | null
-          id?: number
-          user_id: string
+          public_key_id: number
           wallet_id: string
-          xpub: string
         }
         Update: {
-          account_node_derivation_path?: string | null
-          id?: number
-          user_id?: string
+          public_key_id?: number
           wallet_id?: string
-          xpub?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_signers_public_key_id_fkey"
+            columns: ["public_key_id"]
+            isOneToOne: false
+            referencedRelation: "public_keys"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_signers_wallet_id_fkey"
             columns: ["wallet_id"]
@@ -153,6 +172,14 @@ export type Database = {
           _user_public_keys: Json[]
         }
         Returns: string
+      }
+      get_or_create_public_key: {
+        Args: {
+          _user_id: string
+          _xpub: string
+          _account_node_derivation_path: string
+        }
+        Returns: number
       }
     }
     Enums: {

@@ -25,7 +25,7 @@ class Supabase {
 
   reserveServerSigner = async () => {
     const { error, data } = await this.supabase.from("server_signers")
-      .insert([])
+      .insert([{}])
       .select("*")
       .single();
 

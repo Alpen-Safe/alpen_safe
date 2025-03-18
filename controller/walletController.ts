@@ -11,12 +11,13 @@ class WalletController extends BaseController {
     this.walletManager = walletManager;
   }
 
-  createWalletValidator = () => [
-    body("userId").isString(),
-    body("walletName").isString(),
-    body("userXPubs").isArray(),
-    body("userXPubs.*.publicKey").exists().isString(),
-    body("userXPubs.*.derivationPath").isString(),
+  createWalletValidator = [
+    body("userId").exists().isString(),
+    body("walletName").exists().isString(),
+    body("userXPubs").exists().isArray({ min: 2, max: 2 }).withMessage(
+      "userXPubs must be an array of 2 elements",),
+    body("userXPubs.*.xpub").exists().isString(),
+    body("userXPubs.*.derivationPath").optional().isString(),
   ];
 
   create2Of3Wallet = (req: Request, res: Response) => {

@@ -50,3 +50,5 @@ if (!process.env.SERVER_SEED) {
 
 // TODO: Load server seed from secrets manager
 export const SERVER_SEED = Buffer.from(process.env.SERVER_SEED, "hex");
+
+export const PORT = process.env.PORT || 3000;
