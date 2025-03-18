@@ -10,7 +10,6 @@ import BitcoinMultiSigWallet from "./model/wallet/bitcoinMultiSigWallet.ts";
 import WalletManager from "./model/wallet/walletManager.ts";
 import WalletController from "./controller/walletController.ts";
 import express from "express";
-import { Request, Response } from "express";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
@@ -25,8 +24,10 @@ const walletController = new WalletController({ walletManager });
 
 const app = express();
 
-app.get("/", (_req: Request, res: Response) => {
-  res.send("Hello World!");
-});
+app.get(
+  "/user/create-wallet",
+  walletController.createWalletValidator,
+  walletController.create2Of3Wallet,
+);
 
 app.listen(3000);
