@@ -2,10 +2,8 @@ import { expect } from "jsr:@std/expect";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
 import * as bitcoin from "bitcoinjs-lib";
-import { TxOutput, UTXO } from "../model/multiSigWallet.ts";
-import { SupabaseClient } from "@supabase/supabase-js";
-import Supabase from "../model/supabase.ts";
-import MultiSigWallet from "../model/multiSigWallet.ts";
+import { TxOutput, UTXO } from "../model/wallet/bitcoinMultiSigWallet.ts";
+import BitcoinMultiSigWallet from "../model/wallet/bitcoinMultiSigWallet.ts";
 
 // Helper function to access private methods for testing
 const accessPrivateMethod = <T>(instance: any, methodName: string): T => {
@@ -20,8 +18,7 @@ function setupWallet() {
     "hex",
   );
   const network = networks.testnet;
-  const supabase = new Supabase({ supabase: {} as SupabaseClient });
-  return new MultiSigWallet({ supabase, seed, network });
+  return new BitcoinMultiSigWallet({ seed, network });
 }
 
 // Test suite for validateAccountIndex
@@ -75,10 +72,11 @@ Deno.test("deriveAccountNode - derives node successfully", () => {
     "deriveAccountNode",
   );
 
-  const accountNode = deriveAccountNode(0);
+  const { accountNode, path } = deriveAccountNode(0);
   expect(accountNode).toBeDefined();
   expect(accountNode.publicKey).toBeDefined();
   expect(accountNode.privateKey).toBeDefined();
+  expect(path).toBe("m/84'/1'/0'");
 });
 
 Deno.test("deriveAccountNode - different nodes for different accounts", () => {
@@ -88,13 +86,16 @@ Deno.test("deriveAccountNode - different nodes for different accounts", () => {
     "deriveAccountNode",
   );
 
-  const accountNode0 = deriveAccountNode(0);
-  const accountNode1 = deriveAccountNode(1);
+  const { accountNode: accountNode0, path: path0 } = deriveAccountNode(0);
+  const { accountNode: accountNode1, path: path1 } = deriveAccountNode(1);
 
   const pubKey0 = Buffer.from(accountNode0.publicKey).toString("hex");
   const pubKey1 = Buffer.from(accountNode1.publicKey).toString("hex");
 
   expect(pubKey0).not.toBe(pubKey1);
+  expect(path0).not.toBe(path1);
+  expect(path0).toBe("m/84'/1'/0'");
+  expect(path1).toBe("m/84'/1'/1'");
 });
 
 Deno.test("deriveAccountNode - throws on invalid account index", () => {
@@ -163,7 +164,7 @@ Deno.test("getServerKeyPair - throws on invalid address index", () => {
 // Test suite for getServerAccountXpub
 Deno.test("getServerAccountXpub - returns valid xpub", () => {
   const wallet = setupWallet();
-  const xpub = wallet.getServerAccountXpub(0);
+  const { xpub, path } = wallet.getServerAccountXpub(0);
 
   expect(xpub).toBeDefined();
   expect(xpub.startsWith("tpub")).toBe(true); // Should be testnet pub key
@@ -191,12 +192,14 @@ Deno.test("createWalletDescriptor - creates valid descriptor with user xpubs", (
   // Use a testnet xpub for testing
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
-  const descriptor = wallet.createWalletDescriptor(0, 2, [userXpub]);
+  const { walletDescriptor, serverDerivationPath } = wallet
+    .createWalletDescriptor(0, 2, [userXpub]);
 
-  const serverXpub = wallet.getServerAccountXpub(0);
-  const expectedFormat = `wsh(multi(2,${serverXpub}/0/*,${userXpub}/0/*))`;
+  const { xpub } = wallet.getServerAccountXpub(0);
+  const expectedFormat = `wsh(multi(2,${xpub}/0/*,${userXpub}/0/*))`;
 
-  expect(descriptor).toBe(expectedFormat);
+  expect(walletDescriptor).toBe(expectedFormat);
+  expect(serverDerivationPath).toBe("m/84'/1'/0'");
 });
 
 Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
@@ -206,17 +209,17 @@ Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
     "tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R",
   ];
 
-  const descriptor = wallet.createWalletDescriptor(0, 2, userXpubs);
+  const { walletDescriptor } = wallet.createWalletDescriptor(0, 2, userXpubs);
 
   // Should contain all xpubs
   for (const xpub of userXpubs) {
-    expect(descriptor).toContain(xpub);
+    expect(walletDescriptor).toContain(xpub);
   }
 
   // Should have correct number of commas (number of xpubs)
-  const commas = descriptor.match(/,/g) || [];
+  const commas = walletDescriptor.match(/,/g) || [];
   expect(commas.length - 1).toBe(userXpubs.length);
-  expect(descriptor).toBe(
+  expect(walletDescriptor).toBe(
     "wsh(multi(2,tpubDC8msFGeGuwnKG9Upg7DM2b4DaRqg3CUZa5g8v2SRQ6K4NSkxUgd7HsL2XVWbVm39yBA4LAxysQAm397zwQSQoQgewGiYZqrA9DsP4zbQ1M/0/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/0/*))",
   );
 });

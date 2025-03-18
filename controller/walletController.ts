@@ -1,12 +1,12 @@
-import MultiSigWallet from "../model/multiSigWallet.ts";
 import BaseController from "./baseController.ts";
+import WalletManager from "../model/wallet/walletManager.ts";
 
 class WalletController extends BaseController {
-  private multiSigWallet: MultiSigWallet;
+  private walletManager: WalletManager;
 
-  constructor({ multiSigWallet }: { multiSigWallet: MultiSigWallet }) {
+  constructor({ walletManager }: { walletManager: WalletManager }) {
     super();
-    this.multiSigWallet = multiSigWallet;
+    this.walletManager = walletManager;
   }
 }
 

@@ -2,7 +2,6 @@ import BIP32Factory from "bip32";
 import * as bitcoin from "bitcoinjs-lib";
 import * as ecc from "tiny-secp256k1";
 import { Network, networks } from "bitcoinjs-lib";
-import Supabase from "./supabase.ts";
 import { Buffer } from "node:buffer";
 import { BIP32Interface } from "bip32";
 import { ECPairFactory, ECPairInterface } from "ecpair";
@@ -57,18 +56,15 @@ interface BroadcastResult {
   error?: string;
 }
 
-class MultiSigWallet {
-  private supabase: Supabase;
+class BitcoinMultiSigWallet {
   private masterNode: BIP32Interface;
   private network: Network;
   constructor(
-    { supabase, seed, network }: {
-      supabase: Supabase;
+    { seed, network }: {
       seed: Buffer;
       network: Network;
     },
   ) {
-    this.supabase = supabase;
     this.masterNode = bip32.fromSeed(seed, network);
     this.network = network;
   }
@@ -101,7 +97,10 @@ class MultiSigWallet {
       throw new Error("Failed to derive account node");
     }
 
-    return accountNode;
+    return {
+      accountNode,
+      path: hardenedPath,
+    };
   }
 
   /**
@@ -113,7 +112,7 @@ class MultiSigWallet {
     change = false,
   ): KeyPair {
     // First get the account-level node (hardened derivation)
-    const accountNode = this.deriveAccountNode(accountId);
+    const { accountNode } = this.deriveAccountNode(accountId);
 
     if (!this.validateAccountIndex(addressIndex)) {
       throw new Error(
@@ -148,9 +147,13 @@ class MultiSigWallet {
    * Get the xpub for a specific account
    * This is used for sharing with hardware wallet software
    */
-  public getServerAccountXpub(accountId: number): string {
-    const accountNode = this.deriveAccountNode(accountId);
-    return accountNode.neutered().toBase58();
+  public getServerAccountXpub(accountId: number) {
+    const { accountNode, path } = this.deriveAccountNode(accountId);
+    const xpub = accountNode.neutered().toBase58();
+    return {
+      xpub,
+      path,
+    };
   }
 
   /**
@@ -161,16 +164,21 @@ class MultiSigWallet {
     accountId: number,
     m: number,
     userXpubs: string[],
-  ): string {
-    const serverXpub = this.getServerAccountXpub(accountId);
+  ) {
+    const { xpub, path } = this.getServerAccountXpub(accountId);
 
     // Format: wsh(multi(2,xpub1/0/*,xpub2/0/*,...))
     const xpubPaths = [
-      `${serverXpub}/0/*`, // Receive path
+      `${xpub}/0/*`, // Receive path
       ...userXpubs.map((xpub) => `${xpub}/0/*`),
     ].join(",");
 
-    return `wsh(multi(${m},${xpubPaths}))`;
+    const walletDescriptor = `wsh(multi(${m},${xpubPaths}))`;
+
+    return {
+      walletDescriptor,
+      serverDerivationPath: path,
+    };
   }
 
   /**
@@ -471,4 +479,4 @@ class MultiSigWallet {
   }
 }
 
-export default MultiSigWallet;
+export default BitcoinMultiSigWallet;

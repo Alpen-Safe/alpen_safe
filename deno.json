@@ -15,6 +15,7 @@
     "express": "npm:express@^4.21.2",
     "express-validator": "npm:express-validator@^7.2.1",
     "sinon": "npm:sinon@^19.0.2",
-    "tiny-secp256k1": "npm:tiny-secp256k1@^2.2.3"
+    "tiny-secp256k1": "npm:tiny-secp256k1@^2.2.3",
+    "ts-case-convert": "npm:ts-case-convert@^2.1.0"
   }
 }
