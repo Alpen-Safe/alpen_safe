@@ -2,8 +2,8 @@ import { expect } from "jsr:@std/expect";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
 import * as bitcoin from "bitcoinjs-lib";
-import { TxOutput, UTXO } from "../model/wallet/bitcoinMultiSigWallet.ts";
-import BitcoinMultiSigWallet from "../model/wallet/bitcoinMultiSigWallet.ts";
+import { TxOutput, UTXO } from "../model/wallet/bitcoinWallet.ts";
+import BitcoinWallet from "../model/wallet/bitcoinWallet.ts";
 
 // Helper function to access private methods for testing
 const accessPrivateMethod = <T>(instance: any, methodName: string): T => {
@@ -18,7 +18,7 @@ function setupWallet() {
     "hex",
   );
   const network = networks.testnet;
-  return new BitcoinMultiSigWallet({ seed, network });
+  return new BitcoinWallet({ seed, network });
 }
 
 // Test suite for validateAccountIndex

@@ -7,19 +7,22 @@ import {
 } from "./conf.ts";
 import { createClient } from "@supabase/supabase-js";
 import Supabase from "./model/supabase.ts";
-import BitcoinMultiSigWallet from "./model/wallet/bitcoinMultiSigWallet.ts";
+import BitcoinWallet from "./model/wallet/bitcoinWallet.ts";
 import WalletManager from "./model/wallet/walletManager.ts";
 import WalletController from "./controller/walletController.ts";
 import express from "express";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
-const multiSigWallet = new BitcoinMultiSigWallet({
+const bitcoinWallet = new BitcoinWallet({
   network: BITCOIN_NETWORK,
   seed: SERVER_SEED,
 });
 
-const walletManager = new WalletManager({ multiSigWallet, supabase });
+const walletManager = new WalletManager({
+  bitcoinWallet,
+  supabase,
+});
 
 const walletController = new WalletController({ walletManager });
 

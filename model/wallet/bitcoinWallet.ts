@@ -50,13 +50,14 @@ interface SignedTx {
   signaturesAdded: number;
 }
 
-interface BroadcastResult {
-  txid: string;
-  isSuccess: boolean;
-  error?: string;
-}
-
-class BitcoinMultiSigWallet {
+/**
+ * Stateless class that implements a bitcoin multi sig wallet.
+ * This class only work with bitcoin protocol primitives to
+ * build and sign transactions.
+ *
+ * This class is network and database agnostic.
+ */
+class BitcoinWallet {
   private masterNode: BIP32Interface;
   private network: Network;
   constructor(
@@ -479,4 +480,4 @@ class BitcoinMultiSigWallet {
   }
 }
 
-export default BitcoinMultiSigWallet;
+export default BitcoinWallet;

@@ -1,4 +1,4 @@
-import BitcoinMultiSigWallet from "./bitcoinMultiSigWallet.ts";
+import BitcoinWallet from "./bitcoinWallet.ts";
 import Supabase from "../supabase.ts";
 import { Chain, UserPublicKey } from "../types.ts";
 
@@ -6,18 +6,22 @@ import { Chain, UserPublicKey } from "../types.ts";
 // should apply in all cases
 const SERVER_SIGNERS = 1;
 
+/**
+ * A class to manage wallet and database operations.
+ * Use this class to interact with the wallet to create new wallets, send funds, etc.
+ */
 class WalletManager {
   supabase: Supabase;
-  multiSigWallet: BitcoinMultiSigWallet;
+  bitcoinWallet: BitcoinWallet;
   chain: Chain;
 
   constructor(
-    { multiSigWallet, supabase }: {
-      multiSigWallet: BitcoinMultiSigWallet;
+    { bitcoinWallet, supabase }: {
+      bitcoinWallet: BitcoinWallet;
       supabase: Supabase;
     },
   ) {
-    this.multiSigWallet = multiSigWallet;
+    this.bitcoinWallet = bitcoinWallet;
     this.supabase = supabase;
     this.chain = "bitcoin";
   }
@@ -39,7 +43,7 @@ class WalletManager {
     const { account_id } = reservedServerSigner;
 
     const xpubs = userXPubs.map((xpub) => xpub.xpub);
-    const { walletDescriptor, serverDerivationPath } = this.multiSigWallet
+    const { walletDescriptor, serverDerivationPath } = this.bitcoinWallet
       .createWalletDescriptor(
         account_id,
         m,

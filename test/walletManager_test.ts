@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import Supabase from "../model/supabase.ts";
-import BitcoinMultiSigWallet from "../model/wallet/bitcoinMultiSigWallet.ts";
+import BitcoinWallet from "../model/wallet/bitcoinWallet.ts";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
 import WalletManager from "../model/wallet/walletManager.ts";
@@ -14,9 +14,9 @@ function setupWalletManager() {
   );
   const network = networks.testnet;
   const supabase = new Supabase({ supabase: {} as SupabaseClient });
-  const multiSig = new BitcoinMultiSigWallet({ seed, network });
+  const bitcoinWallet = new BitcoinWallet({ seed, network });
   const walletManager = new WalletManager({
-    multiSigWallet: multiSig,
+    bitcoinWallet,
     supabase,
   });
 
