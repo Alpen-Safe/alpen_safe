@@ -59,7 +59,9 @@ class WalletManager {
       userPublicKeys: userXPubs,
     });
 
-    console.log(`created ${m} of ${n} wallet with id ${walletId} for user ${userId}`);
+    console.log(
+      `created ${m} of ${n} wallet with id ${walletId} for user ${userId}`,
+    );
 
     return {
       walletId,

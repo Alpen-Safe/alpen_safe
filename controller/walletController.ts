@@ -15,7 +15,8 @@ class WalletController extends BaseController {
     body("userId").exists().isString(),
     body("walletName").exists().isString(),
     body("userXPubs").exists().isArray({ min: 2, max: 2 }).withMessage(
-      "userXPubs must be an array of 2 elements",),
+      "userXPubs must be an array of 2 elements",
+    ),
     body("userXPubs.*.xpub").exists().isString(),
     body("userXPubs.*.derivationPath").optional().isString(),
   ];

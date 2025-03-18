@@ -1,9 +1,9 @@
 import {
   BITCOIN_NETWORK,
+  PORT,
   SERVER_SEED,
   SUPABASE_URL,
   SUPABSE_SERVICE_KEY,
-  PORT,
 } from "./conf.ts";
 import { createClient } from "@supabase/supabase-js";
 import Supabase from "./model/supabase.ts";
