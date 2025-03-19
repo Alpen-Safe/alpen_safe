@@ -34,6 +34,21 @@ class WalletController extends BaseController {
 
     return this.execController(req, res, func);
   };
+
+  deriveWalletAddressesValidator = [
+    body("walletId").exists().isString(),
+    body("count").exists().isInt({ min: 1, max: 100 }),
+  ];
+
+  deriveWalletAddresses = (req: Request, res: Response) => {
+    const func = () => {
+      const { walletId, count } = req.body;
+
+      return this.walletManager.deriveAddresses(walletId, count);
+    };
+
+    return this.execController(req, res, func);
+  };
 }
 
 export default WalletController;

@@ -26,6 +26,40 @@ class WalletManager {
     this.chain = "bitcoin";
   }
 
+  async deriveAddresses(walletId: string, count: number) {
+    const walletData = await this.supabase.getWalletData(walletId);
+
+    // TODO: keep track of the last index
+    const startIndex = 0;
+
+    const getAddresses = (change: boolean) => {
+      const addresses = this.bitcoinWallet.deriveAddresses(
+        walletData.account_id,
+        walletData.m,
+        walletData.user_xpubs,
+        startIndex,
+        count,
+        change,
+      );
+
+      return addresses.map((x) => {
+        return {
+          address: x.address,
+          index: x.addressIndex,
+          change,
+        };
+      });
+    };
+
+    const addressesReceive = getAddresses(false);
+    const addressesChange = getAddresses(true);
+
+    return {
+      addressesReceive,
+      addressesChange,
+    };
+  }
+
   async createMOfNWallet(
     userId: string,
     walletName: string,

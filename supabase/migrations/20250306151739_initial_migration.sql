@@ -82,6 +82,29 @@ create policy none_shall_pass on public.USER_SIGNERS
 for select
 using (false);
 
+
+CREATE TABLE addresses (
+    id SERIAL PRIMARY KEY,
+    wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id),
+    address TEXT NOT NULL,
+    address_index INT NOT NULL,
+    change BOOLEAN NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE addresses IS 'Table to store addresses for multi-sig wallets';
+COMMENT ON COLUMN addresses.wallet_id IS 'Foreign key to the multi-sig wallet';
+COMMENT ON COLUMN addresses.address IS 'The address for the multi-sig wallet';
+COMMENT ON COLUMN addresses.address_index IS 'The index of the address';
+COMMENT ON COLUMN addresses.change IS 'Whether the address is a change address';
+COMMENT ON COLUMN addresses.created_at IS 'Timestamp when the address was created';
+
+alter table public.addresses enable row level security;
+
+create policy none_shall_pass on public.ADDRESSES
+for select
+using (false);
+
 CREATE FUNCTION get_or_create_public_key(
     _user_id UUID,
     _xpub TEXT,
@@ -145,3 +168,36 @@ BEGIN
     RETURN _wallet_id;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE FUNCTION get_wallet_data(
+    _wallet_id UUID
+) RETURNS TABLE (
+    account_id INT,
+    m INT,
+    user_xpubs TEXT[]
+) AS $$
+DECLARE
+    _account_id INT;
+    _m INT;
+    _user_xpubs TEXT[];
+BEGIN
+    SELECT ss.account_id
+    INTO _account_id
+    FROM server_signers ss
+    WHERE ss.wallet_id = _wallet_id;
+
+    SELECT msw.m
+    INTO _m
+    FROM multi_sig_wallets msw
+    WHERE msw.id = _wallet_id;
+
+    SELECT array_agg(pk.xpub)
+    INTO _user_xpubs
+    FROM public_keys pk
+    JOIN user_signers us ON pk.id = us.public_key_id
+    WHERE us.wallet_id = _wallet_id;
+
+    RETURN QUERY SELECT _account_id, _m, _user_xpubs;
+END;
+$$ LANGUAGE plpgsql;
+

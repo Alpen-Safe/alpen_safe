@@ -10,6 +10,7 @@ import Supabase from "./model/supabase.ts";
 import BitcoinWallet from "./model/wallet/bitcoinWallet.ts";
 import WalletManager from "./model/wallet/walletManager.ts";
 import WalletController from "./controller/walletController.ts";
+import UserController from "./controller/userController.ts";
 import express from "express";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
@@ -24,16 +25,29 @@ const walletManager = new WalletManager({
   supabase,
 });
 
+const userController = new UserController();
 const walletController = new WalletController({ walletManager });
 
 const app = express();
 app.use(express.json());
 
-app.post(
-  "/user/create-wallet",
+const userRouter = express.Router();
+
+userRouter.use(userController.getUser);
+
+userRouter.post(
+  "/wallet/create",
   walletController.createWalletValidator,
   walletController.create2Of3Wallet,
 );
+
+userRouter.post(
+  "/wallet/addresses",
+  walletController.deriveWalletAddressesValidator,
+  walletController.deriveWalletAddresses,
+);
+
+app.use("/user", userRouter);
 
 app.listen(PORT);
 

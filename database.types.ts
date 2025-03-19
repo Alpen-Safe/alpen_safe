@@ -34,6 +34,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          address: string
+          address_index: number
+          change: boolean
+          created_at: string
+          id: number
+          wallet_id: string
+        }
+        Insert: {
+          address: string
+          address_index: number
+          change: boolean
+          created_at?: string
+          id?: number
+          wallet_id: string
+        }
+        Update: {
+          address?: string
+          address_index?: number
+          change?: boolean
+          created_at?: string
+          id?: number
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "multi_sig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       multi_sig_wallets: {
         Row: {
           chain: Database["public"]["Enums"]["supported_chains"]
@@ -180,6 +215,16 @@ export type Database = {
           _account_node_derivation_path: string
         }
         Returns: number
+      }
+      get_wallet_data: {
+        Args: {
+          _wallet_id: string
+        }
+        Returns: {
+          account_id: number
+          m: number
+          user_xpubs: string[]
+        }[]
       }
     }
     Enums: {

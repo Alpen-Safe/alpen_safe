@@ -22,6 +22,8 @@ interface WalletInfo {
   witnessScript: Buffer;
   serverKeyDerivationPath: string;
   serverPublicKey: string;
+  addressIndex: number;
+  change: boolean;
 }
 
 export interface UTXO {
@@ -256,13 +258,15 @@ class BitcoinWallet {
       witnessScript: p2ms.output,
       serverKeyDerivationPath: serverKeyPair.derivationPath,
       serverPublicKey: serverKeyPair.publicKey.toString("hex"),
+      addressIndex: addressIndex,
+      change: change,
     };
   }
 
   /**
    * Generate multiple addresses for a wallet (receive or change)
    */
-  public generateAddresses(
+  public deriveAddresses(
     accountId: number,
     m: number,
     userXpubs: string[],

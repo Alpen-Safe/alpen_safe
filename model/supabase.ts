@@ -30,6 +30,7 @@ class Supabase {
       .single();
 
     if (error) {
+      console.error("error reserving server signer", error.message);
       throw new Error(error.message);
     }
 
@@ -65,6 +66,20 @@ class Supabase {
     });
 
     if (error) {
+      console.error("error createWallet", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  };
+
+  getWalletData = async (walletId: string) => {
+    const { error, data } = await this.supabase.rpc("get_wallet_data", {
+      _wallet_id: walletId,
+    }).single();
+
+    if (error) {
+      console.error("error getWalletData", error.message);
       throw new Error(error.message);
     }
 

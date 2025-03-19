@@ -294,14 +294,14 @@ Deno.test("deriveWalletFromXpubs - throws on invalid xpub", () => {
     .toThrow("Failed to derive key from xpub");
 });
 
-// Test suite for generateAddresses
-Deno.test("generateAddresses - generates multiple receive addresses", () => {
+// Test suite for deriveAddresses
+Deno.test("deriveAddresses - generates multiple receive addresses", () => {
   const wallet = setupWallet();
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
   const count = 3;
 
-  const addresses = wallet.generateAddresses(0, 2, [userXpub], 0, count, false);
+  const addresses = wallet.deriveAddresses(0, 2, [userXpub], 0, count, false);
 
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
@@ -313,13 +313,13 @@ Deno.test("generateAddresses - generates multiple receive addresses", () => {
   expect(uniqueAddresses.size).toBe(count);
 });
 
-Deno.test("generateAddresses - generates multiple change addresses", () => {
+Deno.test("deriveAddresses - generates multiple change addresses", () => {
   const wallet = setupWallet();
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
   const count = 3;
 
-  const addresses = wallet.generateAddresses(0, 2, [userXpub], 0, count, true);
+  const addresses = wallet.deriveAddresses(0, 2, [userXpub], 0, count, true);
 
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
@@ -328,14 +328,14 @@ Deno.test("generateAddresses - generates multiple change addresses", () => {
   }
 });
 
-Deno.test("generateAddresses - generates addresses with custom start index", () => {
+Deno.test("deriveAddresses - generates addresses with custom start index", () => {
   const wallet = setupWallet();
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
   const startIndex = 5;
   const count = 2;
 
-  const addresses = wallet.generateAddresses(
+  const addresses = wallet.deriveAddresses(
     0,
     2,
     [userXpub],
@@ -352,13 +352,13 @@ Deno.test("generateAddresses - generates addresses with custom start index", () 
   }
 });
 
-Deno.test("generateAddresses - generates addresses for different accounts", () => {
+Deno.test("deriveAddresses - generates addresses for different accounts", () => {
   const wallet = setupWallet();
   const userXpub =
     "tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba";
 
-  const addresses1 = wallet.generateAddresses(0, 2, [userXpub], 0, 1, false);
-  const addresses2 = wallet.generateAddresses(1, 2, [userXpub], 0, 1, false);
+  const addresses1 = wallet.deriveAddresses(0, 2, [userXpub], 0, 1, false);
+  const addresses2 = wallet.deriveAddresses(1, 2, [userXpub], 0, 1, false);
 
   expect(addresses1[0].serverKeyDerivationPath).toBe("m/84'/1'/0'/0/0");
   expect(addresses2[0].serverKeyDerivationPath).toBe("m/84'/1'/1'/0/0");
