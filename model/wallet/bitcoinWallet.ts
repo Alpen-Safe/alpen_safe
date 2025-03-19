@@ -89,10 +89,13 @@ class BitcoinWallet {
       );
     }
 
-    // m / purpose' / coin_type' / account'
-    // Using BIP84 path for native SegWit
+    // Using BIP48 multi-sig wallets derivation scheme
+    // m / purpose' / coin_type' / account' / script_type' / change / address_index
+    const purpose = 48; // BIP48 (multi-sig)
     const coinType = this.network === networks.bitcoin ? 0 : 1;
-    const hardenedPath = `m/84'/${coinType}'/${accountId}'`;
+    const scriptType = 2; // P2WSH (native segwit)
+    const hardenedPath =
+      `m/${purpose}'/${coinType}'/${accountId}'/${scriptType}'`;
 
     const accountNode = this.masterNode.derivePath(hardenedPath);
 
@@ -115,7 +118,7 @@ class BitcoinWallet {
     change = false,
   ): KeyPair {
     // First get the account-level node (hardened derivation)
-    const { accountNode } = this.deriveAccountNode(accountId);
+    const { accountNode, path } = this.deriveAccountNode(accountId);
 
     if (!this.validateAccountIndex(addressIndex)) {
       throw new Error(
@@ -135,9 +138,7 @@ class BitcoinWallet {
     }
 
     // Construct the full derivation path for reference
-    const coinType = this.network === networks.bitcoin ? 0 : 1;
-    const fullDerivationPath =
-      `m/84'/${coinType}'/${accountId}'/${changeIndex}/${addressIndex}`;
+    const fullDerivationPath = `${path}/${changeIndex}/${addressIndex}`;
 
     return {
       publicKey: Buffer.from(childNode.publicKey),

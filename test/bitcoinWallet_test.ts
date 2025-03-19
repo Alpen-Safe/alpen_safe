@@ -76,7 +76,7 @@ Deno.test("deriveAccountNode - derives node successfully", () => {
   expect(accountNode).toBeDefined();
   expect(accountNode.publicKey).toBeDefined();
   expect(accountNode.privateKey).toBeDefined();
-  expect(path).toBe("m/84'/1'/0'");
+  expect(path).toBe("m/48'/1'/0'/2'");
 });
 
 Deno.test("deriveAccountNode - different nodes for different accounts", () => {
@@ -94,8 +94,8 @@ Deno.test("deriveAccountNode - different nodes for different accounts", () => {
 
   expect(pubKey0).not.toBe(pubKey1);
   expect(path0).not.toBe(path1);
-  expect(path0).toBe("m/84'/1'/0'");
-  expect(path1).toBe("m/84'/1'/1'");
+  expect(path0).toBe("m/48'/1'/0'/2'");
+  expect(path1).toBe("m/48'/1'/1'/2'");
 });
 
 Deno.test("deriveAccountNode - throws on invalid account index", () => {
@@ -119,7 +119,7 @@ Deno.test("getServerKeyPair - derives key pair for receive address", () => {
 
   expect(keyPair.publicKey).toBeDefined();
   expect(keyPair.privateKey).toBeDefined();
-  expect(keyPair.derivationPath).toBe("m/84'/1'/0'/0/0");
+  expect(keyPair.derivationPath).toBe("m/48'/1'/0'/2'/0/0");
 });
 
 Deno.test("getServerKeyPair - derives key pair for change address", () => {
@@ -132,7 +132,7 @@ Deno.test("getServerKeyPair - derives key pair for change address", () => {
 
   expect(keyPair.publicKey).toBeDefined();
   expect(keyPair.privateKey).toBeDefined();
-  expect(keyPair.derivationPath).toBe("m/84'/1'/0'/1/0");
+  expect(keyPair.derivationPath).toBe("m/48'/1'/0'/2'/1/0");
 });
 
 Deno.test("getServerKeyPair - different keys for different indices", () => {
@@ -199,7 +199,7 @@ Deno.test("createWalletDescriptor - creates valid descriptor with user xpubs", (
   const expectedFormat = `wsh(multi(2,${xpub}/0/*,${userXpub}/0/*))`;
 
   expect(walletDescriptor).toBe(expectedFormat);
-  expect(serverDerivationPath).toBe("m/84'/1'/0'");
+  expect(serverDerivationPath).toBe("m/48'/1'/0'/2'");
 });
 
 Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
@@ -220,7 +220,7 @@ Deno.test("createWalletDescriptor - handles multiple user xpubs", () => {
   const commas = walletDescriptor.match(/,/g) || [];
   expect(commas.length - 1).toBe(userXpubs.length);
   expect(walletDescriptor).toBe(
-    "wsh(multi(2,tpubDC8msFGeGuwnKG9Upg7DM2b4DaRqg3CUZa5g8v2SRQ6K4NSkxUgd7HsL2XVWbVm39yBA4LAxysQAm397zwQSQoQgewGiYZqrA9DsP4zbQ1M/0/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/0/*))",
+    "wsh(multi(2,tpubDFH9dgzveyD8zTbPUFuLrGmCydNvxehyNdUXKJAQN8x4aZ4j6UZqGfnqFrD4NqyaTVGKbvEW54tsvPTK2UoSbCC1PJY8iCNiwTL3RWZEheQ/0/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/0/*))",
   );
 });
 
@@ -236,7 +236,7 @@ Deno.test("deriveWalletFromXpubs - derives receive address from xpubs", () => {
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.address.startsWith("tb1")).toBe(true); // Testnet bech32 address
   expect(addressInfo.witnessScript).toBeDefined();
-  expect(addressInfo.serverKeyDerivationPath).toBe("m/84'/1'/0'/0/0");
+  expect(addressInfo.serverKeyDerivationPath).toBe("m/48'/1'/0'/2'/0/0");
   expect(addressInfo.serverPublicKey).toBeDefined();
 });
 
@@ -250,7 +250,7 @@ Deno.test("deriveWalletFromXpubs - derives change address from xpubs", () => {
 
   expect(addressInfo.address).toBeDefined();
   expect(addressInfo.witnessScript).toBeDefined();
-  expect(addressInfo.serverKeyDerivationPath).toBe("m/84'/1'/0'/1/0");
+  expect(addressInfo.serverKeyDerivationPath).toBe("m/48'/1'/0'/2'/1/0");
 });
 
 Deno.test("deriveWalletFromXpubs - different addresses for different indices", () => {
@@ -305,7 +305,7 @@ Deno.test("deriveAddresses - generates multiple receive addresses", () => {
 
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
-    expect(addresses[i].serverKeyDerivationPath).toBe(`m/84'/1'/0'/0/${i}`);
+    expect(addresses[i].serverKeyDerivationPath).toBe(`m/48'/1'/0'/2'/0/${i}`);
   }
 
   // Each address should be unique
@@ -323,7 +323,7 @@ Deno.test("deriveAddresses - generates multiple change addresses", () => {
 
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
-    expect(addresses[i].serverKeyDerivationPath).toBe(`m/84'/1'/0'/1/${i}`);
+    expect(addresses[i].serverKeyDerivationPath).toBe(`m/48'/1'/0'/2'/1/${i}`);
     expect(addresses[i].address.startsWith("tb1")).toBe(true);
   }
 });
@@ -347,7 +347,7 @@ Deno.test("deriveAddresses - generates addresses with custom start index", () =>
   expect(addresses).toHaveLength(count);
   for (let i = 0; i < count; i++) {
     expect(addresses[i].serverKeyDerivationPath).toBe(
-      `m/84'/1'/0'/0/${startIndex + i}`,
+      `m/48'/1'/0'/2'/0/${startIndex + i}`,
     );
   }
 });
@@ -360,8 +360,8 @@ Deno.test("deriveAddresses - generates addresses for different accounts", () => 
   const addresses1 = wallet.deriveAddresses(0, 2, [userXpub], 0, 1, false);
   const addresses2 = wallet.deriveAddresses(1, 2, [userXpub], 0, 1, false);
 
-  expect(addresses1[0].serverKeyDerivationPath).toBe("m/84'/1'/0'/0/0");
-  expect(addresses2[0].serverKeyDerivationPath).toBe("m/84'/1'/1'/0/0");
+  expect(addresses1[0].serverKeyDerivationPath).toBe("m/48'/1'/0'/2'/0/0");
+  expect(addresses2[0].serverKeyDerivationPath).toBe("m/48'/1'/1'/2'/0/0");
 
   // Addresses should be different
   expect(addresses1[0].address).not.toBe(addresses2[0].address);
@@ -398,7 +398,7 @@ Deno.test("createUnsignedTransaction - creates valid transaction with sufficient
       value: 1000000, // 0.01 BTC
       address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
       witnessScript,
-      derivationPath: "m/84'/1'/0'/0/0",
+      derivationPath: "m/48'/1'/0'/2'/0/0",
     },
   ];
 
@@ -451,7 +451,7 @@ Deno.test("createUnsignedTransaction - throws error with insufficient funds", ()
       value: 1000, // Very small amount
       address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
       witnessScript,
-      derivationPath: "m/84'/1'/0'/0/0",
+      derivationPath: "m/48'/1'/0'/2'/0/0",
     },
   ];
 
@@ -515,7 +515,7 @@ Deno.test("createUnsignedTransaction - throws error with no outputs", () => {
       value: 100000,
       address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
       witnessScript,
-      derivationPath: "m/84'/1'/0'/0/0",
+      derivationPath: "m/48'/1'/0'/2'/0/0",
     },
   ];
 
@@ -554,7 +554,7 @@ Deno.test("createUnsignedTransaction - creates transaction with multiple inputs 
       value: 500000,
       address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
       witnessScript,
-      derivationPath: "m/84'/1'/0'/0/0",
+      derivationPath: "m/48'/1'/0'/2'/0/0",
     },
     {
       txid: "0000000000000000000000000000000000000000000000000000000000000002",
