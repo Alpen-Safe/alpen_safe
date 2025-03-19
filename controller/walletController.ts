@@ -49,6 +49,11 @@ class WalletController extends BaseController {
 
     return this.execController(req, res, func);
   };
+
+  signTransactionWithServerValidator = [
+    body("walletId").exists().isString(),
+    body("transaction").exists().isString(),
+  ];
 }
 
 export default WalletController;

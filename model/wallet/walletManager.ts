@@ -26,6 +26,20 @@ class WalletManager {
     this.chain = "bitcoin";
   }
 
+  async signTransactionWithServer(
+    walletId: string,
+    psbtBase64: string,
+  ) {
+    const walletData = await this.supabase.getWalletData(walletId);
+
+    const signedTx = this.bitcoinWallet.signTransactionWithServer(
+      psbtBase64,
+      walletData.account_id,
+    );
+
+    return signedTx;
+  }
+
   async deriveAddresses(walletId: string, count: number) {
     const walletData = await this.supabase.getWalletData(walletId);
 

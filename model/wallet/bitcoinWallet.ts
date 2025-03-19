@@ -89,7 +89,7 @@ class BitcoinWallet {
       );
     }
 
-    // Using BIP48 multi-sig wallets derivation scheme
+    // Using BIP48 for multi-sig wallets derivation scheme
     // m / purpose' / coin_type' / account' / script_type' / change / address_index
     const purpose = 48; // BIP48 (multi-sig)
     const coinType = this.network === networks.bitcoin ? 0 : 1;
@@ -376,7 +376,6 @@ class BitcoinWallet {
   public signTransactionWithServer(
     psbtBase64: string,
     accountId: number,
-    m: number,
   ): SignedTx {
     // Parse the PSBT
     const psbt = bitcoin.Psbt.fromBase64(psbtBase64, { network: this.network });
