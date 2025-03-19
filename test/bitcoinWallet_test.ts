@@ -634,7 +634,6 @@ Deno.test("signTransactionWithServer - adds server signature to PSBT", () => {
   const signedTx = wallet.signTransactionWithServer(
     unsignedTx.psbtBase64,
     accountIndex,
-    m,
   );
 
   // Verify signature was added
