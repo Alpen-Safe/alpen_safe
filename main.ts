@@ -10,7 +10,7 @@ import Supabase from "./model/supabase.ts";
 import BitcoinWallet from "./model/wallet/bitcoinWallet.ts";
 import WalletManager from "./model/wallet/walletManager.ts";
 import WalletController from "./controller/walletController.ts";
-import UserController from "./controller/userController.ts";
+import AuthController from "./controller/authController.ts";
 import AdminController from "./controller/adminController.ts";
 import express from "express";
 
@@ -26,7 +26,7 @@ const walletManager = new WalletManager({
   supabase,
 });
 
-const userController = new UserController();
+const authController = new AuthController({ supabase });
 const walletController = new WalletController({ walletManager });
 const adminController = new AdminController({ walletManager });
 
@@ -35,17 +35,19 @@ app.use(express.json());
 
 const userRouter = express.Router();
 const adminRouter = express.Router();
+const userWalletRouter = express.Router({ mergeParams: true });
 
-userRouter.use(userController.getUser);
+userRouter.use(authController.getUser);
+userWalletRouter.use(authController.getUserWallet);
 
 userRouter.post(
-  "/wallet/create",
+  "/wallet/create/2-of-3",
   walletController.createWalletValidator,
   walletController.create2Of3Wallet,
 );
 
-userRouter.post(
-  "/wallet/addresses",
+userWalletRouter.post(
+  "/addresses",
   walletController.deriveWalletAddressesValidator,
   walletController.deriveWalletAddresses,
 );
@@ -58,7 +60,7 @@ adminRouter.post(
 
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
-
+app.use("/user/wallet/:walletId", userWalletRouter);
 app.listen(PORT);
 
 console.log(`Server running on port ${PORT}`);
