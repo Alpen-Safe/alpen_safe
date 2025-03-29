@@ -91,7 +91,7 @@ class Supabase {
       .from("multi_sig_wallets")
       .select("user_owner")
       .eq("id", walletId);
-      
+
     return res;
   };
 }

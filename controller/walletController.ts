@@ -16,10 +16,18 @@ class WalletController extends BaseController {
     body("userXPubs").exists().isArray({ min: 2, max: 2 }).withMessage(
       "userXPubs must be an array of 2 elements",
     ),
-    body("userXPubs.*.xpub").exists().isString().withMessage("xpub must be a string"),
-    body("userXPubs.*.path").exists().isString().withMessage("path must be a string"),
-    body("userXPubs.*.device").exists().isString().withMessage("device must be a string"),
-    body("userXPubs.*.label").optional().isString().withMessage("label must be a string or null"),
+    body("userXPubs.*.xpub").exists().isString().withMessage(
+      "xpub must be a string",
+    ),
+    body("userXPubs.*.path").exists().isString().withMessage(
+      "path must be a string",
+    ),
+    body("userXPubs.*.device").exists().isString().withMessage(
+      "device must be a string",
+    ),
+    body("userXPubs.*.label").optional().isString().withMessage(
+      "label must be a string or null",
+    ),
   ];
 
   create2Of3Wallet = (req: Request, res: Response) => {
