@@ -13,6 +13,7 @@ import WalletController from "./controller/walletController.ts";
 import AuthController from "./controller/authController.ts";
 import AdminController from "./controller/adminController.ts";
 import express from "express";
+import cors from "cors";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
@@ -32,6 +33,7 @@ const adminController = new AdminController({ walletManager });
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const userRouter = express.Router();
 const adminRouter = express.Router();

@@ -9,8 +9,6 @@ class AuthController {
   }
 
   getUser = async (req: Request, res: Response, next: Next) => {
-    console.log(`User router used: ${req.method} ${req.originalUrl}`);
-
     try {
       const authHeader = req.headers.authorization;
 
@@ -52,7 +50,6 @@ class AuthController {
   };
 
   getUserWallet = async (req: Request, res: Response, next: Next) => {
-    console.log(`User wallet router used: ${req.method} ${req.originalUrl}`);
     const userId = req.user?.id;
     const { walletId } = req.params;
 
