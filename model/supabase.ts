@@ -86,11 +86,11 @@ class Supabase {
     return data;
   };
 
-  getWalletOwner = async (walletId: string) => {
+  getWalletOwners = async (walletId: string) => {
     const res = await this.supabase
-      .from("multi_sig_wallets")
-      .select("user_owner")
-      .eq("id", walletId);
+      .from("wallet_owners")
+      .select("user_id, role")
+      .eq("wallet_id", walletId);
 
     return res;
   };

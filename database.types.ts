@@ -79,7 +79,6 @@ export type Database = {
           name: string
           server_signers: number
           updated_at: string
-          user_owner: string
           wallet_descriptor: string
         }
         Insert: {
@@ -91,7 +90,6 @@ export type Database = {
           name: string
           server_signers: number
           updated_at?: string
-          user_owner: string
           wallet_descriptor: string
         }
         Update: {
@@ -103,7 +101,6 @@ export type Database = {
           name?: string
           server_signers?: number
           updated_at?: string
-          user_owner?: string
           wallet_descriptor?: string
         }
         Relationships: []
@@ -197,6 +194,32 @@ export type Database = {
           },
         ]
       }
+      wallet_owners: {
+        Row: {
+          role: Database["public"]["Enums"]["wallet_owner_role"]
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          role: Database["public"]["Enums"]["wallet_owner_role"]
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          role?: Database["public"]["Enums"]["wallet_owner_role"]
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_owners_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "multi_sig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -246,15 +269,10 @@ export type Database = {
           user_xpubs: string[]
         }[]
       }
-      get_wallet_owner: {
-        Args: {
-          _wallet_id: string
-        }
-        Returns: string
-      }
     }
     Enums: {
       supported_chains: "bitcoin" | "ethereum"
+      wallet_owner_role: "admin" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -374,6 +392,7 @@ export const Constants = {
   public: {
     Enums: {
       supported_chains: ["bitcoin", "ethereum"],
+      wallet_owner_role: ["admin", "viewer"],
     },
   },
 } as const

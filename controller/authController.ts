@@ -57,7 +57,7 @@ class AuthController {
       return res.status(400).json({ error: "Wallet ID is required" });
     }
 
-    const { data: walletOwner, error } = await this.supabase.getWalletOwner(
+    const { data: walletOwners, error } = await this.supabase.getWalletOwners(
       walletId,
     );
     if (error && error.message.includes("invalid input syntax for type uuid")) {
@@ -69,9 +69,10 @@ class AuthController {
       return res.status(500).json({ error: "Internal server error" });
     }
 
-    const doesUserOwnWallet = walletOwner.some((owner) =>
-      owner.user_owner === userId
+    const doesUserOwnWallet = walletOwners.some((owner) =>
+      owner.user_id === userId
     );
+
     if (!doesUserOwnWallet) {
       return res.status(403).json({
         error: "User does not have access to this wallet",

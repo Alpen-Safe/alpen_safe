@@ -8,6 +8,64 @@ COMMENT ON COLUMN public_keys.device IS 'The device that the public key was crea
 COMMENT ON COLUMN public_keys.created_at IS 'The date and time the public key was created';
 COMMENT ON COLUMN public_keys.label IS 'The label of the public key defined by the user';
 
+ALTER TABLE multi_sig_wallets DROP COLUMN user_owner;
+
+CREATE TYPE wallet_owner_role AS ENUM ('admin', 'viewer');
+
+CREATE TABLE wallet_owners (
+    wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id),
+    user_id UUID NOT NULL REFERENCES auth.users(id),
+    role wallet_owner_role NOT NULL,
+    PRIMARY KEY (wallet_id, user_id)
+);
+
+COMMENT ON TABLE wallet_owners IS 'Table to store wallet owners';
+COMMENT ON COLUMN wallet_owners.wallet_id IS 'The id of the wallet';
+COMMENT ON COLUMN wallet_owners.user_id IS 'The id of the user';
+COMMENT ON COLUMN wallet_owners.role IS 'The role of the user';
+
+ALTER TABLE multi_sig_wallets ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own wallets" ON multi_sig_wallets
+FOR SELECT USING (
+    EXISTS (
+        SELECT 1
+        FROM wallet_owners
+        WHERE wallet_owners.wallet_id = multi_sig_wallets.id
+        AND wallet_owners.user_id = auth.uid()
+    )
+);
+
+-- Enable RLS on wallet_owners table
+ALTER TABLE wallet_owners ENABLE ROW LEVEL SECURITY;
+
+-- Policy for users to view their wallet owner records
+CREATE POLICY "Users can view their own wallet owner records" ON wallet_owners
+FOR SELECT USING (
+    user_id = auth.uid()
+);
+
+-- Policy for users to view their public keys
+CREATE POLICY "Users can view their own public keys" ON public_keys
+FOR SELECT USING (
+    user_id = auth.uid()
+);
+
+DROP POLICY none_shall_pass ON public_keys;
+DROP POLICY none_shall_pass ON multi_sig_wallets;
+DROP POLICY none_shall_pass ON addresses;
+
+CREATE POLICY "Users can view their own addresses" ON addresses
+FOR SELECT USING (
+    EXISTS (
+        SELECT 1
+        FROM wallet_owners
+        WHERE wallet_owners.wallet_id = addresses.wallet_id
+        AND wallet_owners.user_id = auth.uid()
+    )
+);
+
+
 CREATE FUNCTION get_or_create_public_key(
     _user_id UUID,
     _xpub TEXT,
@@ -49,9 +107,13 @@ DECLARE
     _user_public_key JSONB;
     _public_key_id INT;
 BEGIN
-    INSERT INTO multi_sig_wallets (user_owner, name, m, n, chain, wallet_descriptor, server_signers)
-    VALUES (_user_id, _wallet_name, _m, _n, _chain, _wallet_descriptor, _server_signers)
+    INSERT INTO multi_sig_wallets (name, m, n, chain, wallet_descriptor, server_signers)
+    VALUES (_wallet_name, _m, _n, _chain, _wallet_descriptor, _server_signers)
     RETURNING id INTO _wallet_id;
+    
+    -- Insert the user as admin in the wallet_owners table
+    INSERT INTO wallet_owners (wallet_id, user_id, role)
+    VALUES (_wallet_id, _user_id, 'admin');
 
     FOREACH _user_public_key IN ARRAY _user_public_keys
     LOOP
