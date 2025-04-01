@@ -10,6 +10,7 @@
     "@supabase/supabase-js": "jsr:@supabase/supabase-js@^2.49.1",
     "bip32": "npm:bip32@^5.0.0-rc.0",
     "bitcoinjs-lib": "npm:bitcoinjs-lib@^6.1.7",
+    "cors": "npm:cors@^2.8.5",
     "dotenv": "npm:dotenv@^16.4.7",
     "ecpair": "npm:ecpair@^3.0.0",
     "express": "npm:express@^4.21.2",

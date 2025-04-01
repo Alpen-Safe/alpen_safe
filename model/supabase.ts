@@ -85,6 +85,15 @@ class Supabase {
 
     return data;
   };
+
+  getWalletOwners = async (walletId: string) => {
+    const res = await this.supabase
+      .from("wallet_owners")
+      .select("user_id, role")
+      .eq("wallet_id", walletId);
+
+    return res;
+  };
 }
 
 export default Supabase;

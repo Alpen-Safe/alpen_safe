@@ -12,18 +12,29 @@ class WalletController extends BaseController {
   }
 
   createWalletValidator = [
-    body("userId").exists().isString(),
     body("walletName").exists().isString(),
     body("userXPubs").exists().isArray({ min: 2, max: 2 }).withMessage(
       "userXPubs must be an array of 2 elements",
     ),
-    body("userXPubs.*.xpub").exists().isString(),
-    body("userXPubs.*.derivationPath").optional().isString(),
+    body("userXPubs.*.xpub").exists().isString().withMessage(
+      "xpub must be a string",
+    ),
+    body("userXPubs.*.path").exists().isString().withMessage(
+      "path must be a string",
+    ),
+    body("userXPubs.*.device").exists().isString().withMessage(
+      "device must be a string",
+    ),
+    body("userXPubs.*.label").optional({ nullable: true }).isString()
+      .withMessage(
+        "label must be a string or null",
+      ),
   ];
 
   create2Of3Wallet = (req: Request, res: Response) => {
     const func = () => {
-      const { userId, walletName, userXPubs } = req.body;
+      const userId = req.user?.id;
+      const { walletName, userXPubs } = req.body;
 
       return this.walletManager.createTwoOfThreeWallet(
         userId,
@@ -36,13 +47,13 @@ class WalletController extends BaseController {
   };
 
   deriveWalletAddressesValidator = [
-    body("walletId").exists().isString(),
     body("count").exists().isInt({ min: 1, max: 100 }),
   ];
 
   deriveWalletAddresses = (req: Request, res: Response) => {
     const func = () => {
-      const { walletId, count } = req.body;
+      const walletId = req.walletId;
+      const { count } = req.body;
 
       return this.walletManager.deriveAddresses(walletId, count);
     };
