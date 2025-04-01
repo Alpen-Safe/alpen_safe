@@ -13,6 +13,7 @@ export interface CreateWalletParams {
   serverSigners: number;
   serverSignerId: number;
   serverSignerDerivationPath: string;
+  serverXpub: string;
   userPublicKeys: UserPublicKey[];
 }
 
@@ -49,6 +50,7 @@ class Supabase {
       userPublicKeys,
       serverSignerId,
       serverSignerDerivationPath,
+      serverXpub,
     } = params;
 
     const convertedKeys = objectToSnake(userPublicKeys);
@@ -62,6 +64,7 @@ class Supabase {
       _server_signers: serverSigners,
       _server_signer_id: serverSignerId,
       _server_signer_derivation_path: serverSignerDerivationPath,
+      _server_xpub: serverXpub,
       _user_public_keys: convertedKeys,
     });
 

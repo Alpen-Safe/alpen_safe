@@ -141,18 +141,21 @@ export type Database = {
           account_node_derivation_path: string | null
           created_at: string
           wallet_id: string | null
+          xpub: string | null
         }
         Insert: {
           account_id?: number
           account_node_derivation_path?: string | null
           created_at?: string
           wallet_id?: string | null
+          xpub?: string | null
         }
         Update: {
           account_id?: number
           account_node_derivation_path?: string | null
           created_at?: string
           wallet_id?: string | null
+          xpub?: string | null
         }
         Relationships: [
           {
@@ -222,24 +225,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      server_signers_limited: {
+        Row: {
+          wallet_id: string | null
+          xpub: string | null
+        }
+        Insert: {
+          wallet_id?: string | null
+          xpub?: string | null
+        }
+        Update: {
+          wallet_id?: string | null
+          xpub?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_signers_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "multi_sig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      create_wallet: {
-        Args: {
-          _user_id: string
-          _wallet_name: string
-          _m: number
-          _n: number
-          _chain: Database["public"]["Enums"]["supported_chains"]
-          _wallet_descriptor: string
-          _server_signers: number
-          _server_signer_id: number
-          _server_signer_derivation_path: string
-          _user_public_keys: Json[]
-        }
-        Returns: string
-      }
+      create_wallet:
+        | {
+            Args: {
+              _user_id: string
+              _wallet_name: string
+              _m: number
+              _n: number
+              _chain: Database["public"]["Enums"]["supported_chains"]
+              _wallet_descriptor: string
+              _server_signers: number
+              _server_signer_id: number
+              _server_signer_derivation_path: string
+              _server_xpub: string
+              _user_public_keys: Json[]
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _user_id: string
+              _wallet_name: string
+              _m: number
+              _n: number
+              _chain: Database["public"]["Enums"]["supported_chains"]
+              _wallet_descriptor: string
+              _server_signers: number
+              _server_signer_id: number
+              _server_signer_derivation_path: string
+              _user_public_keys: Json[]
+            }
+            Returns: string
+          }
       get_or_create_public_key:
         | {
             Args: {

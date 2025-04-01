@@ -91,7 +91,8 @@ class WalletManager {
     const { account_id } = reservedServerSigner;
 
     const xpubs = userXPubs.map((xpub) => xpub.xpub);
-    const { walletDescriptor, serverDerivationPath } = this.bitcoinWallet
+    const { walletDescriptor, serverDerivationPath, serverXpub } = this
+      .bitcoinWallet
       .createWalletDescriptor(
         account_id,
         m,
@@ -108,6 +109,7 @@ class WalletManager {
       serverSigners: SERVER_SIGNERS,
       serverSignerId: account_id,
       serverSignerDerivationPath: serverDerivationPath,
+      serverXpub,
       userPublicKeys: userXPubs,
     });
 

@@ -182,6 +182,7 @@ class BitcoinWallet {
     return {
       walletDescriptor,
       serverDerivationPath: path,
+      serverXpub: xpub,
     };
   }
 
