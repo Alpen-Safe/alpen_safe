@@ -59,7 +59,7 @@ class WalletManager {
       return addresses.map((x) => {
         return {
           address: x.address,
-          index: x.addressIndex,
+          addressIndex: x.addressIndex,
           change,
         };
       });
@@ -67,6 +67,11 @@ class WalletManager {
 
     const addressesReceive = getAddresses(false);
     const addressesChange = getAddresses(true);
+
+    await this.supabase.saveAddresses(walletId, [
+      ...addressesReceive,
+      ...addressesChange,
+    ]);
 
     return {
       addressesReceive,
@@ -117,9 +122,17 @@ class WalletManager {
       `created ${m} of ${n} wallet with id ${walletId} for user ${userId}`,
     );
 
+    const { addressesReceive } = await this.deriveAddresses(
+      walletId,
+      10,
+    );
+
+    const firstAddressReceive = addressesReceive[0];
+
     return {
       walletId,
       walletDescriptor,
+      firstAddressReceive,
     };
   }
 
