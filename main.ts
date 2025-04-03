@@ -14,6 +14,7 @@ import AuthController from "./controller/authController.ts";
 import AdminController from "./controller/adminController.ts";
 import express from "express";
 import cors from "cors";
+import { Request, Response } from "express";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
@@ -41,6 +42,10 @@ const userWalletRouter = express.Router({ mergeParams: true });
 
 userRouter.use(authController.getUser);
 userWalletRouter.use(authController.getUserWallet);
+
+app.get("/", (_: Request, res: Response) => {
+  res.send("Hello World");
+});
 
 userRouter.post(
   "/wallet/create/2-of-3",

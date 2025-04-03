@@ -250,6 +250,13 @@ export type Database = {
       }
     }
     Functions: {
+      create_addresses: {
+        Args: {
+          _wallet_id: string
+          _addresses: Json
+        }
+        Returns: undefined
+      }
       create_wallet:
         | {
             Args: {

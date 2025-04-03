@@ -17,6 +17,12 @@ export interface CreateWalletParams {
   userPublicKeys: UserPublicKey[];
 }
 
+export interface Address {
+  address: string;
+  addressIndex: number;
+  change: boolean;
+}
+
 class Supabase {
   supabase: SupabaseClient<Database>;
 
@@ -96,6 +102,20 @@ class Supabase {
       .eq("wallet_id", walletId);
 
     return res;
+  };
+
+  saveAddresses = async (walletId: string, addresses: Address[]) => {
+    const { error, data } = await this.supabase.rpc("create_addresses", {
+      _wallet_id: walletId,
+      _addresses: objectToSnake(addresses),
+    });
+
+    if (error) {
+      console.error("error saveAddresses", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
   };
 }
 
