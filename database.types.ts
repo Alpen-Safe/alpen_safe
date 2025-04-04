@@ -318,6 +318,12 @@ export type Database = {
           user_xpubs: string[]
         }[]
       }
+      user_owns_wallet: {
+        Args: {
+          wallet_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       supported_chains: "bitcoin" | "ethereum"
