@@ -4,3 +4,5 @@ supabase/.branches
 supabase/.temp
 cov
 cov.*
+.cookie
+node_modules

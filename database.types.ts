@@ -197,6 +197,41 @@ export type Database = {
           },
         ]
       }
+      utxos: {
+        Row: {
+          address_id: number | null
+          created_at: string
+          is_spent: boolean
+          updated_at: string
+          utxo_id: string
+          value: number
+        }
+        Insert: {
+          address_id?: number | null
+          created_at?: string
+          is_spent?: boolean
+          updated_at?: string
+          utxo_id: string
+          value: number
+        }
+        Update: {
+          address_id?: number | null
+          created_at?: string
+          is_spent?: boolean
+          updated_at?: string
+          utxo_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "utxos_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_owners: {
         Row: {
           role: Database["public"]["Enums"]["wallet_owner_role"]
@@ -251,15 +286,12 @@ export type Database = {
     }
     Functions: {
       create_addresses: {
-        Args: {
-          _wallet_id: string
-          _addresses: Json
-        }
+        Args: { _wallet_id: string; _addresses: Json }
         Returns: undefined
       }
-      create_wallet:
-        | {
-            Args: {
+      create_wallet: {
+        Args:
+          | {
               _user_id: string
               _wallet_name: string
               _m: number
@@ -272,10 +304,7 @@ export type Database = {
               _server_xpub: string
               _user_public_keys: Json[]
             }
-            Returns: string
-          }
-        | {
-            Args: {
+          | {
               _user_id: string
               _wallet_name: string
               _m: number
@@ -287,31 +316,26 @@ export type Database = {
               _server_signer_derivation_path: string
               _user_public_keys: Json[]
             }
-            Returns: string
-          }
-      get_or_create_public_key:
-        | {
-            Args: {
+        Returns: string
+      }
+      get_or_create_public_key: {
+        Args:
+          | {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
             }
-            Returns: number
-          }
-        | {
-            Args: {
+          | {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
               _device: string
               _label?: string
             }
-            Returns: number
-          }
+        Returns: number
+      }
       get_wallet_data: {
-        Args: {
-          _wallet_id: string
-        }
+        Args: { _wallet_id: string }
         Returns: {
           account_id: number
           m: number
@@ -319,9 +343,7 @@ export type Database = {
         }[]
       }
       user_owns_wallet: {
-        Args: {
-          wallet_id: string
-        }
+        Args: { wallet_id: string }
         Returns: boolean
       }
     }

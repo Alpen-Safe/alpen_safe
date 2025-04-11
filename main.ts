@@ -15,6 +15,7 @@ import AdminController from "./controller/adminController.ts";
 import express from "express";
 import cors from "cors";
 import { Request, Response } from "express";
+import TransactionListenerController from "./controller/transactionLitenerController.ts";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
@@ -31,6 +32,9 @@ const walletManager = new WalletManager({
 const authController = new AuthController({ supabase });
 const walletController = new WalletController({ walletManager });
 const adminController = new AdminController({ walletManager });
+const transactionListenerController = new TransactionListenerController({
+  zmqUrl: "tcp://127.0.0.1:28332",
+});
 
 const app = express();
 app.use(express.json());

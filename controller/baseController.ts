@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
+import { AxiosError } from "axios";
 
 class BaseController {
   /**
@@ -50,6 +51,23 @@ class BaseController {
           },
         ],
       });
+    }
+  };
+
+  execFunctionWithTryCatch = async (controller: Function) => {
+    try {
+      await controller();
+    } catch (error: any) {
+      if (error instanceof AxiosError) {
+        console.error(
+          "function threw an error in controller",
+          error.response?.data || error.message,
+        );
+      } else if (error instanceof Error) {
+        console.error("function threw an error in controller", error.message);
+      } else {
+        console.error("An unknown error occurred", error);
+      }
     }
   };
 }

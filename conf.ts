@@ -52,3 +52,11 @@ if (!process.env.SERVER_SEED) {
 export const SERVER_SEED = Buffer.from(process.env.SERVER_SEED, "hex");
 
 export const PORT = process.env.PORT || 3000;
+
+export const ZMQ_URL = process.env.ZMQ_URL;
+
+if (!ZMQ_URL) {
+  throw new Error(
+    "Please define the ZMQ_URL environment variable inside .env.local",
+  );
+}
