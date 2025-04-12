@@ -167,6 +167,99 @@ export type Database = {
           },
         ]
       }
+      transaction_inputs: {
+        Row: {
+          transaction_id: string
+          utxo_id: string
+        }
+        Insert: {
+          transaction_id: string
+          utxo_id: string
+        }
+        Update: {
+          transaction_id?: string
+          utxo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_inputs_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "transaction_inputs_utxo_id_fkey"
+            columns: ["utxo_id"]
+            isOneToOne: false
+            referencedRelation: "utxos"
+            referencedColumns: ["utxo_id"]
+          },
+        ]
+      }
+      transaction_outputs: {
+        Row: {
+          address_id: number
+          transaction_id: string
+          value: number
+        }
+        Insert: {
+          address_id: number
+          transaction_id: string
+          value: number
+        }
+        Update: {
+          address_id?: number
+          transaction_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_outputs_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_outputs_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["transaction_id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          chain: Database["public"]["Enums"]["supported_chains"]
+          confirmations: number
+          confirmed_at: string | null
+          created_at: string
+          transaction_id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          value: number
+        }
+        Insert: {
+          chain?: Database["public"]["Enums"]["supported_chains"]
+          confirmations: number
+          confirmed_at?: string | null
+          created_at?: string
+          transaction_id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          value: number
+        }
+        Update: {
+          chain?: Database["public"]["Enums"]["supported_chains"]
+          confirmations?: number
+          confirmed_at?: string | null
+          created_at?: string
+          transaction_id?: string
+          type?: Database["public"]["Enums"]["transaction_type"]
+          value?: number
+        }
+        Relationships: []
+      }
       user_signers: {
         Row: {
           public_key_id: number
@@ -349,6 +442,7 @@ export type Database = {
     }
     Enums: {
       supported_chains: "bitcoin" | "ethereum"
+      transaction_type: "send" | "receive"
       wallet_owner_role: "admin" | "viewer"
     }
     CompositeTypes: {
@@ -469,6 +563,7 @@ export const Constants = {
   public: {
     Enums: {
       supported_chains: ["bitcoin", "ethereum"],
+      transaction_type: ["send", "receive"],
       wallet_owner_role: ["admin", "viewer"],
     },
   },
