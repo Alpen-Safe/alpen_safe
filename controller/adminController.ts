@@ -1,7 +1,7 @@
 import { body } from "express-validator";
-import BaseController from "./baseController.ts";
-import { Next, Request, Response } from "express";
-import WalletManager from "../model/wallet/walletManager.ts";
+import BaseController from "./baseController";
+import { NextFunction,Request, Response } from "express";
+import WalletManager from "../model/wallet/walletManager";
 
 class AdminController extends BaseController {
   private walletManager: WalletManager;
@@ -15,7 +15,7 @@ class AdminController extends BaseController {
     body("psbtBase64").exists().isString(),
   ];
 
-  getAdmin = (req: Request, res: Response, next: Next) => {
+  getAdmin = (req: Request, res: Response, next: NextFunction) => {
     console.log("admin router used");
     next();
   };

@@ -4,18 +4,18 @@ import {
   SERVER_SEED,
   SUPABASE_URL,
   SUPABSE_SERVICE_KEY,
-} from "./conf.ts";
+} from "./conf";
 import { createClient } from "@supabase/supabase-js";
-import Supabase from "./model/supabase.ts";
-import BitcoinWallet from "./model/wallet/bitcoinWallet.ts";
-import WalletManager from "./model/wallet/walletManager.ts";
-import WalletController from "./controller/walletController.ts";
-import AuthController from "./controller/authController.ts";
-import AdminController from "./controller/adminController.ts";
+import Supabase from "./model/supabase";
+import BitcoinWallet from "./model/wallet/bitcoinWallet";
+import WalletManager from "./model/wallet/walletManager";
+import WalletController from "./controller/walletController";
+import AuthController from "./controller/authController";
+import AdminController from "./controller/adminController";
 import express from "express";
 import cors from "cors";
 import { Request, Response } from "express";
-import TransactionListenerController from "./controller/transactionLitenerController.ts";
+import TransactionListenerController from "./controller/transactionLitenerController";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });

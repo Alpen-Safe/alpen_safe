@@ -1,4 +1,4 @@
-import Supabase from "../supabase.ts";
+import Supabase from "../supabase";
 
 class BitcoinMonitor {
   private supabase: Supabase;

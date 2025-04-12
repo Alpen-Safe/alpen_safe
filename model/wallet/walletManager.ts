@@ -1,6 +1,6 @@
-import BitcoinWallet from "./bitcoinWallet.ts";
-import Supabase from "../supabase.ts";
-import { Chain, UserPublicKey } from "../types.ts";
+import BitcoinWallet from "./bitcoinWallet";
+import Supabase from "../supabase";
+import { Chain, UserPublicKey } from "../types";
 
 // we fix 1 server signer for now
 // should apply in all cases

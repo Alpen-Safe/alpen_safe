@@ -5,4 +5,11 @@ supabase/.temp
 cov
 cov.*
 .cookie
-node_modules
+node_modules/
+dist/
+coverage/
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store

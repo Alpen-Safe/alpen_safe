@@ -1,5 +1,5 @@
-import BaseController from "./baseController.ts";
-import BitcoinMonitor from "../model/monitoring/bitcoinMonitor.ts";
+import BaseController from "./baseController";
+import BitcoinMonitor from "../model/monitoring/bitcoinMonitor";
 
 class TransactionListenerController extends BaseController {
   zmqUrl: string;

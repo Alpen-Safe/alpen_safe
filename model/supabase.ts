@@ -1,7 +1,7 @@
-import { Database } from "../database.types.ts";
+import { Database } from "../database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { UserPublicKey } from "./types.ts";
-import { objectToSnake } from "npm:ts-case-convert";
+import { UserPublicKey } from "./types";
+import { objectToSnake } from "ts-case-convert";
 
 export interface CreateWalletParams {
   userId: string;

@@ -1,9 +1,9 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import Supabase from "../model/supabase.ts";
-import BitcoinWallet from "../model/wallet/bitcoinWallet.ts";
+import Supabase from "../model/supabase";
+import BitcoinWallet from "../model/wallet/bitcoinWallet";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
-import WalletManager from "../model/wallet/walletManager.ts";
+import WalletManager from "../model/wallet/walletManager";
 
 // Setup function to create a new wallet instance
 function setupWalletManager() {
