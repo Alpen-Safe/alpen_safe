@@ -4,6 +4,7 @@ import {
   SERVER_SEED,
   SUPABASE_URL,
   SUPABSE_SERVICE_KEY,
+  ZMQ_URL,
 } from "./conf";
 import { createClient } from "@supabase/supabase-js";
 import Supabase from "./model/supabase";
@@ -33,8 +34,10 @@ const authController = new AuthController({ supabase });
 const walletController = new WalletController({ walletManager });
 const adminController = new AdminController({ walletManager });
 const transactionListenerController = new TransactionListenerController({
-  zmqUrl: "tcp://127.0.0.1:28332",
+  zmqUrl: ZMQ_URL,
 });
+
+transactionListenerController.startBitcoinTxListener();
 
 const app = express();
 app.use(express.json());
