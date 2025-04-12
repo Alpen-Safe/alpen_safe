@@ -31,8 +31,8 @@
     // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
     // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
-    // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
-    "types": ["mocha", "node", "chai"],                                      /* Specify type package names to be included without being referenced in a source file. */
+    "typeRoots": ["./node_modules/@types", "./types"],   /* Specify multiple folders that act like './node_modules/@types'. */
+    "types": ["mocha", "node", "chai", "express"],       /* Specify type package names to be included without being referenced in a source file. */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
     // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
     // "allowImportingTsExtensions": true,               /* Allow imports to include TypeScript file extensions. Requires '--moduleResolution bundler' and either '--noEmit' or '--emitDeclarationOnly' to be set. */
@@ -106,9 +106,15 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "./*.ts",              // Include all TypeScript files in the root directory,
-    "./test/*.ts",      // and all TypeScript files in the test directory
-    "./types/**/*.ts"   // Include all TypeScript declaration files in the types directory
+    "./*.ts",              // Include all TypeScript files in the root directory
+    "./test/**/*.ts",      // and all TypeScript files in the test directory and subdirectories
+    "./types/**/*.ts",     // Include all TypeScript declaration files in the types directory
+    "./controller/**/*.ts",// Include controller files
+    "./model/**/*.ts",     // Include model files
+    "./middleware/**/*.ts",// Include middleware files
+    "./routes/**/*.ts",    // Include routes files
+    "./util/**/*.ts",      // Include utility files
+    "./service/**/*.ts"    // Include service files
   ],
   "exclude": [
     "node_modules",       // Exclude node_modules

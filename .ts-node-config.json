@@ -1,0 +1,19 @@
+{
+  "transpileOnly": false,
+  "compilerOptions": {
+    "module": "CommonJS",
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["node", "express"]
+  },
+  "include": [
+    "./*.ts", 
+    "./types/**/*.ts",
+    "./controller/**/*.ts",
+    "./model/**/*.ts",
+    "./middleware/**/*.ts",
+    "./routes/**/*.ts"
+  ],
+  "files": [
+    "./types/express/index.d.ts"
+  ]
+} 
