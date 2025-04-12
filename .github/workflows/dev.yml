@@ -10,22 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
+      with:
+        node-version: 20
 
-      - name: check types
-        run: deno check main.ts
+    - name: Install dependencies
+      run: npm ci
 
-      - name: format
-        run: deno fmt --ignore=database.types.ts --ignore=README.md --check
+    - name: Compile TypeScript
+      run: npx tsc
 
-      - name: test
-        run: deno test --allow-all
+    - name: Run tests
+      run: npm test
 
   test-db:
     runs-on: ubuntu-latest

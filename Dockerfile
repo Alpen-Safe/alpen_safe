@@ -1,15 +1,19 @@
-FROM denoland/deno:2.2.3
+FROM node:20.11-slim
 
-EXPOSE 3000
-
-# Create working directory
+# Create app directory
 WORKDIR /app
 
-# Copy source
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY package*.json ./
+
+RUN npm install
+# If you are building your code for production
+# RUN npm ci --omit=dev
+
+# Bundle app source
 COPY . .
 
-# Compile the main app
-RUN deno cache main.ts
-
-# Run the app
-CMD ["deno", "run", "--allow-net", "--allow-env", "--allow-read", "main.ts"]
+EXPOSE 3000
+ENTRYPOINT [ "npm", "run", "serve:prod" ]
