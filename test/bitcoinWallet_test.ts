@@ -1,6 +1,3 @@
-/// <reference types="mocha" />
-/// <reference types="chai" />
-
 import { expect } from "chai";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
