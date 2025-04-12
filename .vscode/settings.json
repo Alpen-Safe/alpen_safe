@@ -1,10 +1,11 @@
 {
-  "[typescript]": {
-    "editor.defaultFormatter": null
-  },
-  "deno.enable": false,
   "deno.lint": false,
-  "mochaExplorer.files": "dist/test/**/*.js",
-  "mochaExplorer.require": "source-map-support/register",
-  "mochaExplorer.watch": "dist/**/*.js"
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "mochaExplorer.files": "test/**/*.ts",
+  "mochaExplorer.require": "tsx",
+  "mochaExplorer.nodeArguments": [
+    "--no-warnings"
+  ]
 }
