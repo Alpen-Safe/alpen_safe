@@ -17,7 +17,7 @@ import express from "express";
 import cors from "cors";
 import { Request, Response } from "express";
 import TransactionListenerController from "./controller/transactionLitenerController";
-
+import BitcoinMonitor from "./model/monitoring/bitcoinMonitor";
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
 const bitcoinWallet = new BitcoinWallet({
@@ -25,16 +25,20 @@ const bitcoinWallet = new BitcoinWallet({
   seed: SERVER_SEED,
 });
 
+const bitcoinMonitor = new BitcoinMonitor({ supabase, network: BITCOIN_NETWORK });
+
 const walletManager = new WalletManager({
   bitcoinWallet,
   supabase,
+  bitcoinMonitor,
 });
-
 const authController = new AuthController({ supabase });
 const walletController = new WalletController({ walletManager });
 const adminController = new AdminController({ walletManager });
+
 const transactionListenerController = new TransactionListenerController({
   zmqUrl: ZMQ_URL,
+  bitcoinMonitor,
 });
 
 transactionListenerController.startBitcoinTxListener();

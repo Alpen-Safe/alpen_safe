@@ -41,6 +41,7 @@ export type Database = {
           change: boolean
           created_at: string
           id: number
+          is_used: boolean
           wallet_id: string
         }
         Insert: {
@@ -49,6 +50,7 @@ export type Database = {
           change: boolean
           created_at?: string
           id?: number
+          is_used?: boolean
           wallet_id: string
         }
         Update: {
@@ -57,6 +59,7 @@ export type Database = {
           change?: boolean
           created_at?: string
           id?: number
+          is_used?: boolean
           wallet_id?: string
         }
         Relationships: [
@@ -170,15 +173,15 @@ export type Database = {
       transaction_inputs: {
         Row: {
           transaction_id: string
-          utxo_id: string
+          utxo_id: number
         }
         Insert: {
           transaction_id: string
-          utxo_id: string
+          utxo_id: number
         }
         Update: {
           transaction_id?: string
-          utxo_id?: string
+          utxo_id?: number
         }
         Relationships: [
           {
@@ -193,7 +196,7 @@ export type Database = {
             columns: ["utxo_id"]
             isOneToOne: false
             referencedRelation: "utxos"
-            referencedColumns: ["utxo_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -201,16 +204,19 @@ export type Database = {
         Row: {
           address_id: number
           transaction_id: string
+          utxo_id: number
           value: number
         }
         Insert: {
           address_id: number
           transaction_id: string
+          utxo_id: number
           value: number
         }
         Update: {
           address_id?: number
           transaction_id?: string
+          utxo_id?: number
           value?: number
         }
         Relationships: [
@@ -227,6 +233,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "transactions"
             referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "transaction_outputs_utxo_id_fkey"
+            columns: ["utxo_id"]
+            isOneToOne: false
+            referencedRelation: "utxos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -293,26 +306,32 @@ export type Database = {
       utxos: {
         Row: {
           address_id: number | null
+          confirmed: boolean
           created_at: string
+          id: number
           is_spent: boolean
           updated_at: string
-          utxo_id: string
+          utxo: string
           value: number
         }
         Insert: {
           address_id?: number | null
+          confirmed?: boolean
           created_at?: string
+          id?: number
           is_spent?: boolean
           updated_at?: string
-          utxo_id: string
+          utxo: string
           value: number
         }
         Update: {
           address_id?: number | null
+          confirmed?: boolean
           created_at?: string
+          id?: number
           is_spent?: boolean
           updated_at?: string
-          utxo_id?: string
+          utxo?: string
           value?: number
         }
         Relationships: [
@@ -434,6 +453,16 @@ export type Database = {
           m: number
           user_xpubs: string[]
         }[]
+      }
+      received_utxo_in_monitored_address: {
+        Args: {
+          _address: string
+          _utxo: string
+          _value: number
+          _is_spent: boolean
+          _confirmed: boolean
+        }
+        Returns: undefined
       }
       user_owns_wallet: {
         Args: { wallet_id: string }

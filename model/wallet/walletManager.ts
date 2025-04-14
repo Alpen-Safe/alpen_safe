@@ -1,9 +1,10 @@
 import BitcoinWallet from "./bitcoinWallet";
 import Supabase from "../supabase";
 import { Chain, UserPublicKey } from "../types";
+import BitcoinMonitor from "../monitoring/bitcoinMonitor";
 
 // we fix 1 server signer for now
-// should apply in all cases
+// Should apply in all cases
 const SERVER_SIGNERS = 1;
 
 /**
@@ -14,15 +15,18 @@ class WalletManager {
   supabase: Supabase;
   bitcoinWallet: BitcoinWallet;
   chain: Chain;
+  bitcoinMonitor: BitcoinMonitor;
 
   constructor(
-    { bitcoinWallet, supabase }: {
+    { bitcoinWallet, supabase, bitcoinMonitor }: {
       bitcoinWallet: BitcoinWallet;
       supabase: Supabase;
+      bitcoinMonitor: BitcoinMonitor;
     },
   ) {
     this.bitcoinWallet = bitcoinWallet;
     this.supabase = supabase;
+    this.bitcoinMonitor = bitcoinMonitor;
     this.chain = "bitcoin";
   }
 
@@ -72,6 +76,10 @@ class WalletManager {
       ...addressesReceive,
       ...addressesChange,
     ]);
+
+    for (const address of [...addressesReceive, ...addressesChange]) {
+      this.bitcoinMonitor.addAddressToMonitor(address.address);
+    }
 
     return {
       addressesReceive,
