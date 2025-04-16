@@ -1,3 +1,63 @@
+# Alpen Safe
+
+This project has been transformed from Deno to Node.js (TypeScript).
+
+## Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Set up environment variables:
+Copy the `.env` file and update as needed:
+```bash
+cp .env.example .env
+```
+
+3. Build the project:
+```bash
+npm run build
+```
+
+## Development
+
+Run the project in development mode:
+```bash
+npm run dev
+```
+
+## Production
+
+Build and run the project in production mode:
+```bash
+npm run build
+npm start
+```
+
+## Other Commands
+
+- Format the code: `npm run fmt`
+- Type-check the code: `npm run check`
+- Run tests: `npm run test`
+- Generate seed data: `npm run seed`
+
+## Project Structure
+
+- `main.ts`: Entry point
+- `conf.ts`: Configuration
+- `controller/`: API controllers
+- `model/`: Data models
+- `scripts/`: Utility scripts
+
+## Notes on Deno to Node.js Migration
+
+1. Configured imports without file extensions
+2. Added package.json and tsconfig.json with proper ESM support
+3. Updated import/export syntax to be Node.js compatible
+4. Set up equivalent npm scripts to match the original Deno tasks
+5. Added experimental specifier resolution for Node.js
+
 # Alpen Vault
 
 ## Run

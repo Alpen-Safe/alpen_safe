@@ -10,22 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
+      with:
+        node-version: 20
 
-      - name: check types
-        run: deno check main.ts
+    - name: Install dependencies
+      run: npm ci
 
-      - name: format
-        run: deno fmt --ignore=database.types.ts --ignore=README.md --check
+    - name: Compile TypeScript
+      run: npx tsc
 
-      - name: test
-        run: deno test --allow-all
+    - name: Run tests
+      run: npm test
 
   test-db:
     runs-on: ubuntu-latest
@@ -51,3 +51,44 @@ jobs:
 
       - name: Run tests
         run: supabase test db
+
+  build:
+    needs: [test, test-db]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: digitaltrustsolutions/${{ github.event.repository.name }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      

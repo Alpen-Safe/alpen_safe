@@ -1,7 +1,7 @@
-import { Database } from "../database.types.ts";
+import { Database } from "../database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { UserPublicKey } from "./types.ts";
-import { objectToSnake } from "npm:ts-case-convert";
+import { UserPublicKey } from "./types";
+import { objectToSnake } from "ts-case-convert";
 
 export interface CreateWalletParams {
   userId: string;
@@ -117,6 +117,82 @@ class Supabase {
 
     return data;
   };
-}
 
+  /**
+   * Paginate a function that returns a list of items.
+   * @param func - function to paginate
+   * @param limit - limit of items to return
+   * @returns list of items
+   */
+  paginateFunction = async <T>(func: (from: number, to: number) => Promise<T[]>, limit: number = 1000) => {
+      let from = 0;
+      let to = limit - 1;
+      const res = await func(from, to);
+      console.log(`fetched ${res.length} items from ${from} to ${to}`);
+
+      let nextPage = res.length >= limit;
+      while (nextPage) {
+          from += limit;
+          to += limit;
+          const moreTxs = await func(from, to);
+          console.log(`fetched ${moreTxs.length} items from ${from} to ${to}`);
+          res.push(...moreTxs);
+          nextPage = moreTxs.length >= limit;
+      }
+
+      return res;
+  }
+
+
+  getAddresses = async (from: number, to: number) => {
+    const { data, error } = await this
+      .supabase
+      .from('addresses')
+      .select('address')
+      .range(from, to);
+
+    if (error) {
+      console.error("error getAddresses", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  getAllAddresses = () => this.paginateFunction(this.getAddresses);
+
+  receivedUtxoInMonitoredAddress = async (txid: string, address: string, utxo: string, value: number, isSpent: boolean, confirmed: boolean) => {
+    const { error } = await this.supabase.rpc("received_utxo_in_monitored_address", {
+      _txid: txid,
+      _address: address,
+      _utxo: utxo,
+      _value: value,
+      _is_spent: isSpent,
+      _confirmed: confirmed,
+    });
+
+    if (error) {
+      console.error("error receivedUtxoInMonitoredAddress", error.message);
+      console.error("error receivedUtxoInMonitoredAddress with args", txid, address, utxo, value, isSpent, confirmed);
+      console.error(error);
+    }
+  }
+
+  getWalletAddresses = async (walletId: string) => {
+    // no pagination here because I don't expect more than 1000 addresses
+    const { data, error } = await this.supabase
+      .from("addresses")
+      .select("address, address_index, change")
+      .eq("wallet_id", walletId)
+      .order("address_index", { ascending: true })
+      .order("change", { ascending: false });
+
+    if (error) {
+      console.error("error getWalletAddresses", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+}
 export default Supabase;

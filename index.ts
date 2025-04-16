@@ -4,17 +4,22 @@ import {
   SERVER_SEED,
   SUPABASE_URL,
   SUPABSE_SERVICE_KEY,
-} from "./conf.ts";
+  ZMQ_URL,
+  ESPLORA_URL,
+} from "./conf";
 import { createClient } from "@supabase/supabase-js";
-import Supabase from "./model/supabase.ts";
-import BitcoinWallet from "./model/wallet/bitcoinWallet.ts";
-import WalletManager from "./model/wallet/walletManager.ts";
-import WalletController from "./controller/walletController.ts";
-import AuthController from "./controller/authController.ts";
-import AdminController from "./controller/adminController.ts";
+import Supabase from "./model/supabase";
+import BitcoinWallet from "./model/wallet/bitcoinWallet";
+import WalletManager from "./model/wallet/walletManager";
+import WalletController from "./controller/walletController";
+import AuthController from "./controller/authController";
+import AdminController from "./controller/adminController";
 import express from "express";
 import cors from "cors";
 import { Request, Response } from "express";
+import TransactionListenerController from "./controller/transactionLitenerController";
+import BitcoinMonitor from "./model/monitoring/bitcoinMonitor";
+import Esplora from "./api/esplora";
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
@@ -23,14 +28,25 @@ const bitcoinWallet = new BitcoinWallet({
   seed: SERVER_SEED,
 });
 
+
+const esplora = new Esplora(ESPLORA_URL);
+const bitcoinMonitor = new BitcoinMonitor({ supabase, esplora, network: BITCOIN_NETWORK });
+
 const walletManager = new WalletManager({
   bitcoinWallet,
   supabase,
+  bitcoinMonitor,
 });
-
 const authController = new AuthController({ supabase });
 const walletController = new WalletController({ walletManager });
 const adminController = new AdminController({ walletManager });
+
+const transactionListenerController = new TransactionListenerController({
+  zmqUrl: ZMQ_URL,
+  bitcoinMonitor,
+});
+
+transactionListenerController.run();
 
 const app = express();
 app.use(express.json());
@@ -63,6 +79,12 @@ adminRouter.post(
   "/wallet/sign",
   adminController.signTransactionWithServerValidator,
   adminController.signTransactionWithServer,
+);
+
+adminRouter.post(
+  "/wallet/check",
+  transactionListenerController.checkEntireWalletValidator,
+  transactionListenerController.checkEntireWalletHandler,
 );
 
 app.use("/user", userRouter);

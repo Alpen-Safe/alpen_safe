@@ -1,5 +1,5 @@
-import BaseController from "./baseController.ts";
-import WalletManager from "../model/wallet/walletManager.ts";
+import BaseController from "./baseController";
+import WalletManager from "../model/wallet/walletManager";
 import { body } from "express-validator";
 import { Request, Response } from "express";
 
@@ -33,7 +33,7 @@ class WalletController extends BaseController {
 
   create2Of3Wallet = (req: Request, res: Response) => {
     const func = () => {
-      const userId = req.user?.id;
+      const userId = req.user?.id as string;
       const { walletName, userXPubs } = req.body;
 
       return this.walletManager.createTwoOfThreeWallet(
@@ -52,7 +52,7 @@ class WalletController extends BaseController {
 
   deriveWalletAddresses = (req: Request, res: Response) => {
     const func = () => {
-      const walletId = req.walletId;
+      const walletId = req.walletId as string;
       const { count } = req.body;
 
       return this.walletManager.deriveAddresses(walletId, count);

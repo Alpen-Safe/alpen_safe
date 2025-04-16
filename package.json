@@ -1,0 +1,48 @@
+{
+  "name": "alpen_safe",
+  "version": "1.0.0",
+  "description": "Alpen Safe - Transformed from Deno to TypeScript",
+  "main": "dist/main.js",
+  "scripts": {
+    "lint": "eslint . --fix",
+    "test": "mocha --require ts-node/register --project tsconfig.json 'test/**/*.ts'",
+    "build": "tsc",
+    "start": "ts-node --project tsconfig.json --files index.ts",
+    "serve": "nodemon --watch . --exec ts-node --project tsconfig.json --files index.ts",
+    "serve:prod": "npm run build && node ./dist/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "axios": "^1.8.4",
+    "bip32": "^5.0.0-rc.0",
+    "bitcoinjs-lib": "^6.1.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ecpair": "^3.0.0",
+    "express": "^4.21.2",
+    "express-validator": "^7.2.1",
+    "tiny-secp256k1": "^2.2.3",
+    "ts-case-convert": "^2.1.0",
+    "zeromq": "^6.4.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.20",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.11.16",
+    "chai": "^5.2.0",
+    "eslint": "^9.24.0",
+    "eslint-plugin-chai-friendly": "^1.0.1",
+    "globals": "^16.0.0",
+    "mocha": "^11.1.0",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.2.5",
+    "sinon": "^19.0.2",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.29.1"
+  }
+}

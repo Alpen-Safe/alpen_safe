@@ -1,5 +1,5 @@
-import { Next, Request, Response } from "express";
-import Supabase from "../model/supabase.ts";
+import { Request, Response, NextFunction } from "express";
+import Supabase from "../model/supabase";
 
 class AuthController {
   private supabase;
@@ -8,7 +8,7 @@ class AuthController {
     this.supabase = supabase;
   }
 
-  getUser = async (req: Request, res: Response, next: Next) => {
+  getUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authHeader = req.headers.authorization;
 
@@ -49,7 +49,7 @@ class AuthController {
     }
   };
 
-  getUserWallet = async (req: Request, res: Response, next: Next) => {
+  getUserWallet = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?.id;
     const { walletId } = req.params;
 

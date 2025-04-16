@@ -1,25 +1,11 @@
 {
+  "deno.lint": false,
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
-  "deno.enable": true,
-  "deno.enablePaths": [
-    "."
-  ],
-  "deno.lint": true,
-  "deno.unstable": [
-    "bare-node-builtins",
-    "byonm",
-    "sloppy-imports",
-    "unsafe-proto",
-    "webgpu",
-    "broadcast-channel",
-    "worker-options",
-    "cron",
-    "kv",
-    "ffi",
-    "fs",
-    "http",
-    "net"
+  "mochaExplorer.files": "test/**/*.ts",
+  "mochaExplorer.require": "tsx",
+  "mochaExplorer.nodeArguments": [
+    "--no-warnings"
   ]
 }
