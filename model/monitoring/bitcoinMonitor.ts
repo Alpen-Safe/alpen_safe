@@ -118,7 +118,7 @@ class BitcoinMonitor {
         const utxos = await this.esplora.getAddressUtxos(address);
   
         // count empty addresses
-        if (utxos.length === 0 && !startCountingEmptyAddresses) {
+        if (utxos.length === 0 && startCountingEmptyAddresses) {
           emptyAddresses++;
 
           // stop checking if too many addresses had no utxos
