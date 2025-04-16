@@ -252,7 +252,6 @@ export type Database = {
           created_at: string
           id: number
           transaction_id: string
-          value: number
         }
         Insert: {
           chain?: Database["public"]["Enums"]["supported_chains"]
@@ -261,7 +260,6 @@ export type Database = {
           created_at?: string
           id?: number
           transaction_id: string
-          value: number
         }
         Update: {
           chain?: Database["public"]["Enums"]["supported_chains"]
@@ -270,7 +268,6 @@ export type Database = {
           created_at?: string
           id?: number
           transaction_id?: string
-          value?: number
         }
         Relationships: []
       }
@@ -474,6 +471,18 @@ export type Database = {
               _label?: string
             }
         Returns: number
+      }
+      get_tx_history: {
+        Args: { _wallet_id: string }
+        Returns: {
+          transaction_id: string
+          created_at: string
+          confirmed_at: string
+          chain: Database["public"]["Enums"]["supported_chains"]
+          confirmed: boolean
+          input_value: number
+          output_value: number
+        }[]
       }
       get_wallet_data: {
         Args: { _wallet_id: string }
