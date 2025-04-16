@@ -67,6 +67,13 @@ export type Database = {
             foreignKeyName: "addresses_wallet_id_fkey"
             columns: ["wallet_id"]
             isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "addresses_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
             referencedRelation: "multi_sig_wallets"
             referencedColumns: ["id"]
           },
@@ -161,6 +168,13 @@ export type Database = {
           xpub?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "server_signers_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
           {
             foreignKeyName: "server_signers_wallet_id_fkey"
             columns: ["wallet_id"]
@@ -285,6 +299,13 @@ export type Database = {
             foreignKeyName: "user_signers_wallet_id_fkey"
             columns: ["wallet_id"]
             isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "user_signers_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
             referencedRelation: "multi_sig_wallets"
             referencedColumns: ["id"]
           },
@@ -352,6 +373,13 @@ export type Database = {
             foreignKeyName: "wallet_owners_wallet_id_fkey"
             columns: ["wallet_id"]
             isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "wallet_owners_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
             referencedRelation: "multi_sig_wallets"
             referencedColumns: ["id"]
           },
@@ -359,6 +387,13 @@ export type Database = {
       }
     }
     Views: {
+      btc_wallet_balance: {
+        Row: {
+          balance: number | null
+          wallet_id: string | null
+        }
+        Relationships: []
+      }
       server_signers_limited: {
         Row: {
           wallet_id: string | null
@@ -373,6 +408,13 @@ export type Database = {
           xpub?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "server_signers_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
           {
             foreignKeyName: "server_signers_wallet_id_fkey"
             columns: ["wallet_id"]
