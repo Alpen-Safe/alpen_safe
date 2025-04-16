@@ -172,15 +172,15 @@ export type Database = {
       }
       transaction_inputs: {
         Row: {
-          transaction_id: string
+          transaction_id: number
           utxo_id: number
         }
         Insert: {
-          transaction_id: string
+          transaction_id: number
           utxo_id: number
         }
         Update: {
-          transaction_id?: string
+          transaction_id?: number
           utxo_id?: number
         }
         Relationships: [
@@ -189,7 +189,7 @@ export type Database = {
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
-            referencedColumns: ["transaction_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "transaction_inputs_utxo_id_fkey"
@@ -202,37 +202,24 @@ export type Database = {
       }
       transaction_outputs: {
         Row: {
-          address_id: number
-          transaction_id: string
+          transaction_id: number
           utxo_id: number
-          value: number
         }
         Insert: {
-          address_id: number
-          transaction_id: string
+          transaction_id: number
           utxo_id: number
-          value: number
         }
         Update: {
-          address_id?: number
-          transaction_id?: string
+          transaction_id?: number
           utxo_id?: number
-          value?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "transaction_outputs_address_id_fkey"
-            columns: ["address_id"]
-            isOneToOne: false
-            referencedRelation: "addresses"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "transaction_outputs_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
-            referencedColumns: ["transaction_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "transaction_outputs_utxo_id_fkey"
@@ -246,29 +233,29 @@ export type Database = {
       transactions: {
         Row: {
           chain: Database["public"]["Enums"]["supported_chains"]
-          confirmations: number
+          confirmed: boolean
           confirmed_at: string | null
           created_at: string
+          id: number
           transaction_id: string
-          type: Database["public"]["Enums"]["transaction_type"]
           value: number
         }
         Insert: {
           chain?: Database["public"]["Enums"]["supported_chains"]
-          confirmations: number
+          confirmed?: boolean
           confirmed_at?: string | null
           created_at?: string
+          id?: number
           transaction_id: string
-          type: Database["public"]["Enums"]["transaction_type"]
           value: number
         }
         Update: {
           chain?: Database["public"]["Enums"]["supported_chains"]
-          confirmations?: number
+          confirmed?: boolean
           confirmed_at?: string | null
           created_at?: string
+          id?: number
           transaction_id?: string
-          type?: Database["public"]["Enums"]["transaction_type"]
           value?: number
         }
         Relationships: []
@@ -436,13 +423,13 @@ export type Database = {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
+              _device: string
+              _label?: string
             }
           | {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
-              _device: string
-              _label?: string
             }
         Returns: number
       }
@@ -456,6 +443,7 @@ export type Database = {
       }
       received_utxo_in_monitored_address: {
         Args: {
+          _txid: string
           _address: string
           _utxo: string
           _value: number
@@ -471,7 +459,6 @@ export type Database = {
     }
     Enums: {
       supported_chains: "bitcoin" | "ethereum"
-      transaction_type: "send" | "receive"
       wallet_owner_role: "admin" | "viewer"
     }
     CompositeTypes: {
@@ -592,7 +579,6 @@ export const Constants = {
   public: {
     Enums: {
       supported_chains: ["bitcoin", "ethereum"],
-      transaction_type: ["send", "receive"],
       wallet_owner_role: ["admin", "viewer"],
     },
   },

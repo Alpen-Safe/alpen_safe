@@ -5,6 +5,7 @@ import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
 import WalletManager from "../model/wallet/walletManager";
 import BitcoinMonitor from "../model/monitoring/bitcoinMonitor";
+import Esplora from "../api/esplora";
 
 // Setup function to create a new wallet instance
 function setupWalletManager() {
@@ -16,7 +17,8 @@ function setupWalletManager() {
   const network = networks.testnet;
   const supabase = new Supabase({ supabase: {} as SupabaseClient });
   const bitcoinWallet = new BitcoinWallet({ seed, network });
-  const bitcoinMonitor = new BitcoinMonitor({ supabase, network });
+  const esplora = new Esplora('https://test.io');
+  const bitcoinMonitor = new BitcoinMonitor({ supabase, esplora, network });
   const walletManager = new WalletManager({
     bitcoinWallet,
     supabase,

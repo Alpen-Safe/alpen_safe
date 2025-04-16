@@ -5,6 +5,7 @@ import {
   SUPABASE_URL,
   SUPABSE_SERVICE_KEY,
   ZMQ_URL,
+  ESPLORA_URL,
 } from "./conf";
 import { createClient } from "@supabase/supabase-js";
 import Supabase from "./model/supabase";
@@ -18,6 +19,8 @@ import cors from "cors";
 import { Request, Response } from "express";
 import TransactionListenerController from "./controller/transactionLitenerController";
 import BitcoinMonitor from "./model/monitoring/bitcoinMonitor";
+import Esplora from "./api/esplora";
+
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
 const bitcoinWallet = new BitcoinWallet({
@@ -25,7 +28,9 @@ const bitcoinWallet = new BitcoinWallet({
   seed: SERVER_SEED,
 });
 
-const bitcoinMonitor = new BitcoinMonitor({ supabase, network: BITCOIN_NETWORK });
+
+const esplora = new Esplora(ESPLORA_URL);
+const bitcoinMonitor = new BitcoinMonitor({ supabase, esplora, network: BITCOIN_NETWORK });
 
 const walletManager = new WalletManager({
   bitcoinWallet,
@@ -41,7 +46,7 @@ const transactionListenerController = new TransactionListenerController({
   bitcoinMonitor,
 });
 
-transactionListenerController.startBitcoinTxListener();
+transactionListenerController.run();
 
 const app = express();
 app.use(express.json());
@@ -74,6 +79,12 @@ adminRouter.post(
   "/wallet/sign",
   adminController.signTransactionWithServerValidator,
   adminController.signTransactionWithServer,
+);
+
+adminRouter.post(
+  "/wallet/check",
+  transactionListenerController.checkEntireWalletValidator,
+  transactionListenerController.checkEntireWalletHandler,
 );
 
 app.use("/user", userRouter);

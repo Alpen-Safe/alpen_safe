@@ -161,8 +161,9 @@ class Supabase {
 
   getAllAddresses = () => this.paginateFunction(this.getAddresses);
 
-  receivedUtxoInMonitoredAddress = async (address: string, utxo: string, value: number, isSpent: boolean, confirmed: boolean) => {
+  receivedUtxoInMonitoredAddress = async (txid: string, address: string, utxo: string, value: number, isSpent: boolean, confirmed: boolean) => {
     const { error } = await this.supabase.rpc("received_utxo_in_monitored_address", {
+      _txid: txid,
       _address: address,
       _utxo: utxo,
       _value: value,
@@ -172,7 +173,26 @@ class Supabase {
 
     if (error) {
       console.error("error receivedUtxoInMonitoredAddress", error.message);
+      console.error("error receivedUtxoInMonitoredAddress with args", txid, address, utxo, value, isSpent, confirmed);
+      console.error(error);
     }
+  }
+
+  getWalletAddresses = async (walletId: string) => {
+    // no pagination here because I don't expect more than 1000 addresses
+    const { data, error } = await this.supabase
+      .from("addresses")
+      .select("address, address_index, change")
+      .eq("wallet_id", walletId)
+      .order("address_index", { ascending: true })
+      .order("change", { ascending: false });
+
+    if (error) {
+      console.error("error getWalletAddresses", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
   }
 }
 export default Supabase;

@@ -60,3 +60,11 @@ if (!ZMQ_URL) {
     "Please define the ZMQ_URL environment variable inside .env.local",
   );
 }
+
+export const ESPLORA_URL = process.env.ESPLORA_URL as string;
+
+if (!ESPLORA_URL) {
+  throw new Error(
+    "Please define the ESPLORA_URL environment variable inside .env.local",
+  );
+}

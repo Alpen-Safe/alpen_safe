@@ -1,19 +1,21 @@
 import Supabase from "../supabase";
 import { Transaction, Block, networks } from 'bitcoinjs-lib';
 import { address as bitcoinAddress } from 'bitcoinjs-lib';
-
+import Esplora from "../../api/esplora";
 
 class BitcoinMonitor {
   private supabase: Supabase;
   private network: networks.Network;
+  private esplora: Esplora;
   /**
    * Memory map of all addresses in the database.
    */
   private addresses: Map<string, boolean>;
-  constructor({ supabase, network = networks.bitcoin }: { supabase: Supabase, network?: networks.Network }) {
+  constructor({ supabase, esplora, network = networks.bitcoin }: { supabase: Supabase, esplora: Esplora, network?: networks.Network }) {
     this.supabase = supabase;
     this.addresses = new Map();
     this.network = network;
+    this.esplora = esplora;
   }
 
   addAddressToMonitor = (address: string) => {
@@ -90,11 +92,66 @@ class BitcoinMonitor {
         console.log(`received ${utxoId} in address ${address}`);
 
         // index the transaction in the database
-        await this.supabase.receivedUtxoInMonitoredAddress(address, utxoId, output.value, false, confirmed);
+        await this.supabase.receivedUtxoInMonitoredAddress(id, address, utxoId, output.value, false, confirmed);
       }
       i++;
     }
   }
+
+  checkEntireWallet = async (walletId: string) => {
+    console.time(`checkEntireWallet-${walletId}`);
+
+    const addresses = await this.supabase.getWalletAddresses(walletId);
+
+    console.log(`checking entire wallet ${walletId} with ${addresses.length} addresses`);
+
+    /**
+     * Check receive and change addresses separately.
+     * @param addresses - The addresses to check.
+     */
+    const checkAddresses = async (addresses: string[], stopAfterEmptyAddresses: number = 10) => {
+      let emptyAddresses = 0;
+
+      // we need to start counting empty addresses after the first non-empty address
+      let startCountingEmptyAddresses = false;
+      for (const address of addresses) {
+        const utxos = await this.esplora.getAddressUtxos(address);
+  
+        // count empty addresses
+        if (utxos.length === 0 && !startCountingEmptyAddresses) {
+          emptyAddresses++;
+
+          // stop checking if too many addresses had no utxos
+          if (emptyAddresses >= stopAfterEmptyAddresses) {
+            console.log(`${emptyAddresses} addresses had no utxos`);
+            return;
+          }
+
+          continue;
+        } else {
+          emptyAddresses = 0;
+          startCountingEmptyAddresses = true;
+        }
+  
+        for (const utxo of utxos) {
+          const { txid, vout, value, status } = utxo;
+  
+          const confirmed = status.confirmed;
+  
+          // TODO: remove all utxos that are not returned by esplora because they must have been spent
+          await this.supabase.receivedUtxoInMonitoredAddress(txid, address, `${txid}:${vout}`, value, false, confirmed);
+        }
+      };
+    }
+
+    const receiveAddresses = addresses.filter((a) => a.change === false).map((a) => a.address);
+    const changeAddresses = addresses.filter((a) => a.change === true).map((a) => a.address);
+
+    await checkAddresses(receiveAddresses);
+    await checkAddresses(changeAddresses);
+
+    console.timeEnd(`checkEntireWallet-${walletId}`);
+  };
 
 }
 
