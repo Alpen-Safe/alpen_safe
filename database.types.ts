@@ -423,13 +423,13 @@ export type Database = {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
-              _device: string
-              _label?: string
             }
           | {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
+              _device: string
+              _label?: string
             }
         Returns: number
       }
