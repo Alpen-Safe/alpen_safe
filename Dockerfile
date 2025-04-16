@@ -8,8 +8,8 @@ WORKDIR /app
 # where available (npm@5+)
 COPY package*.json ./
 
-# For production builds, only install production dependencies
-RUN npm ci --omit=dev
+# Install all dependencies including dev dependencies
+RUN npm ci
 
 # Bundle app source
 COPY . .
