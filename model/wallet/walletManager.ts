@@ -2,6 +2,7 @@ import BitcoinWallet from "./bitcoinWallet";
 import Supabase from "../supabase";
 import { Chain, UserPublicKey } from "../types";
 import BitcoinMonitor from "../monitoring/bitcoinMonitor";
+import { objectToCamel } from "ts-case-convert";
 
 // we fix 1 server signer for now
 // Should apply in all cases
@@ -85,6 +86,19 @@ class WalletManager {
       addressesReceive,
       addressesChange,
     };
+  }
+
+  async handoutAddresses(walletId: string, isChange: boolean, amount: number) {
+    // we always derive addresses first, saving them in the database
+    // we always keep more addresses than needed in the database
+    await this.deriveAddresses(walletId, amount);
+
+    // the handoud function ensures that the addresses are handed out in the correct order
+    const addresses = await this.supabase.handoutAddresses(walletId, isChange, amount);
+
+    const camelAddresses = addresses.map((x) => objectToCamel(x));
+
+    return camelAddresses;
   }
 
   async createMOfNWallet(

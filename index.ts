@@ -69,10 +69,16 @@ userRouter.post(
   walletController.create2Of3Wallet,
 );
 
+// userWalletRouter.post(
+//   "/addresses",
+//   walletController.deriveWalletAddressesValidator,
+//   walletController.deriveWalletAddresses,
+// );
+
 userWalletRouter.post(
-  "/addresses",
-  walletController.deriveWalletAddressesValidator,
-  walletController.deriveWalletAddresses,
+  "/addresses/handout",
+  walletController.handoutAddressesValidator,
+  walletController.handoutAddresses,
 );
 
 adminRouter.post(

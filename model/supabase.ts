@@ -194,5 +194,20 @@ class Supabase {
 
     return data;
   }
+
+  handoutAddresses = async (walletId: string, isChange: boolean, amount: number) => {
+    const { data, error } = await this.supabase.rpc("handout_addresses", {
+      _wallet_id: walletId,
+      _is_change: isChange,
+      _amount: amount,
+    });
+
+    if (error) {
+      console.error("error handoutAddresses", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
 }
 export default Supabase;

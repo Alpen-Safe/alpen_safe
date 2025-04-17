@@ -65,6 +65,23 @@ class WalletController extends BaseController {
     body("walletId").exists().isString(),
     body("transaction").exists().isString(),
   ];
+
+  handoutAddressesValidator = [
+    body("isChange").exists().isBoolean(),
+    body("amount").exists().isInt({ min: 1, max: 100 }),
+  ];
+
+  handoutAddresses = (req: Request, res: Response) => {
+    const func = () => {
+      const walletId = req.walletId as string;
+      const { isChange, amount } = req.body;
+
+      return this.walletManager.handoutAddresses(walletId, isChange, amount);
+    };
+
+    return this.execController(req, res, func);
+  };
+  
 }
 
 export default WalletController;

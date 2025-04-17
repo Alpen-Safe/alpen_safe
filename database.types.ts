@@ -40,6 +40,7 @@ export type Database = {
           address_index: number
           change: boolean
           created_at: string
+          handed_out: boolean | null
           id: number
           is_used: boolean
           wallet_id: string
@@ -49,6 +50,7 @@ export type Database = {
           address_index: number
           change: boolean
           created_at?: string
+          handed_out?: boolean | null
           id?: number
           is_used?: boolean
           wallet_id: string
@@ -58,6 +60,7 @@ export type Database = {
           address_index?: number
           change?: boolean
           created_at?: string
+          handed_out?: boolean | null
           id?: number
           is_used?: boolean
           wallet_id?: string
@@ -439,7 +442,6 @@ export type Database = {
               _server_signers: number
               _server_signer_id: number
               _server_signer_derivation_path: string
-              _server_xpub: string
               _user_public_keys: Json[]
             }
           | {
@@ -452,6 +454,7 @@ export type Database = {
               _server_signers: number
               _server_signer_id: number
               _server_signer_derivation_path: string
+              _server_xpub: string
               _user_public_keys: Json[]
             }
         Returns: string
@@ -462,13 +465,13 @@ export type Database = {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
+              _device: string
+              _label?: string
             }
           | {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
-              _device: string
-              _label?: string
             }
         Returns: number
       }
@@ -490,6 +493,14 @@ export type Database = {
           account_id: number
           m: number
           user_xpubs: string[]
+        }[]
+      }
+      handout_addresses: {
+        Args: { _wallet_id: string; _is_change?: boolean; _amount?: number }
+        Returns: {
+          address: string
+          address_index: number
+          change: boolean
         }[]
       }
       received_utxo_in_monitored_address: {
