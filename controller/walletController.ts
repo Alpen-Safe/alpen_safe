@@ -55,7 +55,7 @@ class WalletController extends BaseController {
       const walletId = req.walletId as string;
       const { count } = req.body;
 
-      return this.walletManager.deriveAddresses(walletId, count);
+      return this.walletManager.deriveAddresses(walletId, count, false);
     };
 
     return this.execController(req, res, func);

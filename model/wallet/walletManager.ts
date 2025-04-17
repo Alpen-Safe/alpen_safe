@@ -45,53 +45,42 @@ class WalletManager {
     return signedTx;
   }
 
-  async deriveAddresses(walletId: string, count: number) {
+  async deriveAddresses(walletId: string, count: number, change: boolean) {
     const walletData = await this.supabase.getWalletData(walletId);
+    const lastIndex = await this.supabase.getLastAddressIndex(walletId, change);
+    const startIndex = lastIndex ? lastIndex + 1 : 0;
 
-    // TODO: keep track of the last index
-    const startIndex = 0;
+    console.log(`deriving ${count} ${change ? "change" : "receive"} addresses starting from index ${startIndex}...`);
+    
+    const derivedAddresses = this.bitcoinWallet.deriveAddresses(
+      walletData.account_id,
+      walletData.m,
+      walletData.user_xpubs,
+      startIndex,
+      count,
+      change,
+    );
 
-    const getAddresses = (change: boolean) => {
-      const addresses = this.bitcoinWallet.deriveAddresses(
-        walletData.account_id,
-        walletData.m,
-        walletData.user_xpubs,
-        startIndex,
-        count,
-        change,
-      );
+    const addresses = derivedAddresses.map(x => ({
+      address: x.address,
+      addressIndex: x.addressIndex,
+      change,
+    }));
 
-      return addresses.map((x) => {
-        return {
-          address: x.address,
-          addressIndex: x.addressIndex,
-          change,
-        };
-      });
-    };
+    await this.supabase.saveAddresses(walletId, addresses);
 
-    const addressesReceive = getAddresses(false);
-    const addressesChange = getAddresses(true);
-
-    await this.supabase.saveAddresses(walletId, [
-      ...addressesReceive,
-      ...addressesChange,
-    ]);
-
-    for (const address of [...addressesReceive, ...addressesChange]) {
+    // Add addresses to monitor
+    for (const address of addresses) {
       this.bitcoinMonitor.addAddressToMonitor(address.address);
     }
 
-    return {
-      addressesReceive,
-      addressesChange,
-    };
+    return addresses;
   }
 
   async handoutAddresses(walletId: string, isChange: boolean, amount: number) {
     // we always derive addresses first, saving them in the database
     // we always keep more addresses than needed in the database
-    await this.deriveAddresses(walletId, amount);
+    await this.deriveAddresses(walletId, amount, isChange);
 
     // the handoud function ensures that the addresses are handed out in the correct order
     const addresses = await this.supabase.handoutAddresses(walletId, isChange, amount);
@@ -144,17 +133,25 @@ class WalletManager {
       `created ${m} of ${n} wallet with id ${walletId} for user ${userId}`,
     );
 
-    const { addressesReceive } = await this.deriveAddresses(
+    await this.deriveAddresses(
       walletId,
       10,
+      false,
     );
 
-    const firstAddressReceive = addressesReceive[0];
+    // derive change addresses as well
+    await this.deriveAddresses(
+      walletId,
+      10,
+      true,
+    );
+
+    const firstAddressReceive = await this.supabase.handoutAddresses(walletId, false, 1);
 
     return {
       walletId,
       walletDescriptor,
-      firstAddressReceive,
+      firstAddressReceive: firstAddressReceive[0].address,
     };
   }
 

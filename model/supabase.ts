@@ -195,6 +195,27 @@ class Supabase {
     return data;
   }
 
+  getLastAddressIndex = async (walletId: string, isChange: boolean) => {
+    const { data, error } = await this.supabase
+      .from("addresses")
+      .select("address_index")
+      .eq("wallet_id", walletId)
+      .eq("change", isChange)
+      .order("address_index", { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error("error getLastAddressIndex", error.message);
+      throw new Error(error.message);
+    }
+
+    if (data.length === 0) {
+      return null;
+    }
+
+    return data[0].address_index;
+  }
+
   handoutAddresses = async (walletId: string, isChange: boolean, amount: number) => {
     const { data, error } = await this.supabase.rpc("handout_addresses", {
       _wallet_id: walletId,
