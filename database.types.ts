@@ -442,6 +442,7 @@ export type Database = {
               _server_signers: number
               _server_signer_id: number
               _server_signer_derivation_path: string
+              _server_xpub: string
               _user_public_keys: Json[]
             }
           | {
@@ -454,7 +455,6 @@ export type Database = {
               _server_signers: number
               _server_signer_id: number
               _server_signer_derivation_path: string
-              _server_xpub: string
               _user_public_keys: Json[]
             }
         Returns: string
@@ -465,13 +465,13 @@ export type Database = {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
-              _device: string
-              _label?: string
             }
           | {
               _user_id: string
               _xpub: string
               _account_node_derivation_path: string
+              _device: string
+              _label?: string
             }
         Returns: number
       }
