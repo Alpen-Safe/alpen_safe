@@ -414,7 +414,6 @@ describe("BitcoinWallet", () => {
           value: 1000000, // 0.01 BTC
           address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
           witnessScript,
-          derivationPath: "m/48'/1'/0'/2'/0/0",
         },
       ];
 
@@ -427,62 +426,11 @@ describe("BitcoinWallet", () => {
       ];
 
       // Create transaction
-      const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs, 10);
+      const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs);
 
       // Verify transaction was created correctly
       expect(unsignedTx).to.exist;
       expect(unsignedTx.psbtBase64).to.exist;
-      expect(unsignedTx.fee).to.be.greaterThan(0);
-
-      // Verify fee is reasonable
-      expect(unsignedTx.fee).to.be.lessThan(100000); // Less than 0.001 BTC
-
-      // Total input should be greater than total output + fee
-      expect(1000000).to.be.at.least(500000 + unsignedTx.fee);
-    });
-
-    it("should throw error with insufficient funds", () => {
-      const wallet = setupWallet();
-
-      // Create mock witnessScript
-      const witnessScript = bitcoin.script.compile([
-        2, // m value
-        Buffer.from(
-          "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-          "hex",
-        ),
-        Buffer.from(
-          "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
-          "hex",
-        ),
-        2, // n value
-        bitcoin.script.OPS.OP_CHECKMULTISIG,
-      ]);
-
-      // Mock UTXOs with small amount
-      const utxos: UTXO[] = [
-        {
-          txid: "0000000000000000000000000000000000000000000000000000000000000001",
-          vout: 0,
-          value: 1000, // Very small amount
-          address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
-          witnessScript,
-          derivationPath: "m/48'/1'/0'/2'/0/0",
-        },
-      ];
-
-      // Mock outputs with larger amount
-      const outputs: TxOutput[] = [
-        {
-          address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
-          value: 5000, // More than available
-        },
-      ];
-
-      // Should throw error for insufficient funds
-      expect(() => wallet.createUnsignedTransaction(utxos, outputs, 10)).to.throw(
-        "Insufficient funds",
-      );
     });
 
     it("should throw error with no UTXOs", () => {
@@ -500,7 +448,7 @@ describe("BitcoinWallet", () => {
       ];
 
       // Should throw error for no UTXOs
-      expect(() => wallet.createUnsignedTransaction(utxos, outputs, 10)).to.throw(
+      expect(() => wallet.createUnsignedTransaction(utxos, outputs)).to.throw(
         "No UTXOs provided",
       );
     });
@@ -531,7 +479,6 @@ describe("BitcoinWallet", () => {
           value: 100000,
           address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
           witnessScript,
-          derivationPath: "m/48'/1'/0'/2'/0/0",
         },
       ];
 
@@ -539,7 +486,7 @@ describe("BitcoinWallet", () => {
       const outputs: TxOutput[] = [];
 
       // Should throw error for no outputs
-      expect(() => wallet.createUnsignedTransaction(utxos, outputs, 10)).to.throw(
+      expect(() => wallet.createUnsignedTransaction(utxos, outputs)).to.throw(
         "No outputs provided",
       );
     });
@@ -570,7 +517,6 @@ describe("BitcoinWallet", () => {
           value: 500000,
           address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
           witnessScript,
-          derivationPath: "m/48'/1'/0'/2'/0/0",
         },
         {
           txid: "0000000000000000000000000000000000000000000000000000000000000002",
@@ -578,7 +524,6 @@ describe("BitcoinWallet", () => {
           value: 300000,
           address: "tb1qsh3y9q3kw2vz45rmw9l5hnswy96qnghmktk6dk",
           witnessScript,
-          derivationPath: "m/84'/1'/0'/0/1",
         },
       ];
 
@@ -595,13 +540,11 @@ describe("BitcoinWallet", () => {
       ];
 
       // Create transaction
-      const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs, 10);
+      const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs);
 
       // Verify transaction was created correctly
       expect(unsignedTx).to.exist;
       expect(unsignedTx.psbtBase64).to.exist;
-      expect(unsignedTx.fee).to.be.greaterThan(0);
-      expect(unsignedTx.fee).to.be.lessThan(100000); // Less than 0.001 BTC
     });
   });
 
@@ -633,7 +576,6 @@ describe("BitcoinWallet", () => {
           vout: 0,
           value: 1000000, // 0.01 BTC
           witnessScript,
-          derivationPath: serverKeyDerivationPath,
         },
       ];
 
@@ -646,7 +588,7 @@ describe("BitcoinWallet", () => {
       ];
 
       // Create unsigned transaction
-      const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs, 10);
+      const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs);
 
       // Sign transaction with server key
       const signedTx = wallet.signTransactionWithServer(

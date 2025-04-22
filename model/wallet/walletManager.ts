@@ -4,6 +4,7 @@ import { Chain, UserPublicKey, Receiver } from "../types";
 import BitcoinMonitor from "../monitoring/bitcoinMonitor";
 import { objectToCamel } from "ts-case-convert";
 import { UTXO } from "./bitcoin/bitcoinWalletModel";
+import { calculateTxFees } from "../../helpers/feeEstimator";
 
 // we fix 1 server signer for now
 // Should apply in all cases
@@ -164,7 +165,7 @@ class WalletManager {
     return this.createMOfNWallet(userId, walletName, 2, 3, xpubs);
   }
 
-  async buildWalletSpendPsbt(walletId: string, receivers: Receiver[]) {
+  async buildWalletSpendPsbt(walletId: string, receivers: Receiver[], feePerByte: number) {
     const utxos = await this.supabase.getWalletUtxos(walletId);
     const walletData = await this.supabase.getWalletData(walletId);
 
@@ -177,10 +178,10 @@ class WalletManager {
     }
 
     const inputs = [] as UTXO[];
-    let remainingValue = toSendValue;
-    let estimatedFee = 0; // TODO: estimate fee on every iteration
+    let inputValue = 0;
+    let estimatedFee = 0;
     for (const utxo of utxos) {
-      if (remainingValue + estimatedFee <= 0) {
+      if (inputValue >= toSendValue + estimatedFee) {
         break;
       }
 
@@ -209,7 +210,13 @@ class WalletManager {
         witnessScript: derivedAddressInfo.witnessScript,
       });
 
-      remainingValue -= utxo.value;
+      inputValue += utxo.value;
+      const outputsCount = receivers.length + 1;
+      const inputsCount = inputs.length;
+
+      // we update the estimated fee as we add more inputs
+      // we assume that the outputs are P2SH
+      estimatedFee = calculateTxFees(inputsCount, outputsCount, feePerByte, 'P2WSH', 'P2SH');
     }
 
     const outputs = receivers.map((receiver) => ({
@@ -217,18 +224,17 @@ class WalletManager {
       value: receiver.amount,
     }));
 
-    const change = remainingValue > 546;
-    if (change) {
+    const changeValue = inputValue - toSendValue - estimatedFee;
+    if (changeValue >= 546) {
       const [changeAddress] = await this.handoutAddresses(walletId, true, 1);
       outputs.push({
         address: changeAddress.address,
-        value: remainingValue,
+        value: changeValue,
       });
     }
     
     // Create and return the unsigned transaction
-    const feeRate = 10; // satoshis per byte - could be dynamic
-    return this.bitcoinWallet.createUnsignedTransaction(inputs, outputs, feeRate);
+    return this.bitcoinWallet.createUnsignedTransaction(inputs, outputs);
   }
 }
 

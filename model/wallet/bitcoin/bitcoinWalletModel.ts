@@ -302,7 +302,6 @@ class BitcoinWallet {
   public createUnsignedTransaction(
     utxos: UTXO[],
     outputs: TxOutput[],
-    feeRate: number,
   ) {
     if (utxos.length === 0) {
       throw new Error("No UTXOs provided");
@@ -327,9 +326,6 @@ class BitcoinWallet {
       });
     }
 
-    // Calculate total input amount
-    const totalInput = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
-
     // Add outputs
     for (const output of outputs) {
       psbt.addOutput({
@@ -338,31 +334,9 @@ class BitcoinWallet {
       });
     }
 
-    // Calculate total output amount
-    const totalOutput = outputs.reduce((sum, output) => sum + output.value, 0);
-
-    // Estimate transaction size
-    const inputSize = 180; // Average size for P2WSH input with 2 signatures
-    const outputSize = 43; // Average size for P2WSH output
-    const txOverhead = 11; // Transaction overhead bytes
-    const estimatedSize = txOverhead + (utxos.length * inputSize) +
-      (outputs.length * outputSize);
-
-    // Calculate fee
-    const estimatedFee = Math.ceil(estimatedSize * feeRate);
-
-    // Verify that inputs cover outputs + fee
-    if (totalInput < totalOutput + estimatedFee) {
-      throw new Error(
-        `Insufficient funds. Have: ${totalInput}, Need: ${
-          totalOutput + estimatedFee
-        }`,
-      );
-    }
 
     return {
       psbtBase64: psbt.toBase64(),
-      fee: estimatedFee,
     };
   }
 
