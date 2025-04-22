@@ -32,7 +32,6 @@ export interface UTXO {
   value: number;
   address: string;
   witnessScript: Buffer;
-  derivationPath: string;
 }
 
 export interface TxOutput {

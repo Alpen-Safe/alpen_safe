@@ -230,5 +230,18 @@ class Supabase {
 
     return data;
   }
+
+  getWalletUtxos = async (walletId: string) => {
+    const { data, error } = await this.supabase.rpc("get_wallet_utxos", {
+      _wallet_id: walletId,
+    });
+
+    if (error) {
+      console.error("error getWalletUtxos", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
 }
 export default Supabase;

@@ -5,3 +5,9 @@ export type UserPublicKey = {
   path: string;
   device: string;
 };
+
+
+export type Receiver = {
+  address: string;
+  amount: number;
+};

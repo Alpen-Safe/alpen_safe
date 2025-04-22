@@ -495,6 +495,18 @@ export type Database = {
           user_xpubs: string[]
         }[]
       }
+      get_wallet_utxos: {
+        Args: { _wallet_id: string }
+        Returns: {
+          utxo: string
+          value: number
+          is_spent: boolean
+          confirmed: boolean
+          address: string
+          address_index: number
+          change: boolean
+        }[]
+      }
       handout_addresses: {
         Args: { _wallet_id: string; _is_change?: boolean; _amount?: number }
         Returns: {

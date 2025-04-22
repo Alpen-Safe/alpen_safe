@@ -1,8 +1,9 @@
 import BitcoinWallet from "./bitcoin/bitcoinWalletModel";
 import Supabase from "../supabase";
-import { Chain, UserPublicKey } from "../types";
+import { Chain, UserPublicKey, Receiver } from "../types";
 import BitcoinMonitor from "../monitoring/bitcoinMonitor";
 import { objectToCamel } from "ts-case-convert";
+import { UTXO } from "./bitcoin/bitcoinWalletModel";
 
 // we fix 1 server signer for now
 // Should apply in all cases
@@ -161,6 +162,73 @@ class WalletManager {
     xpubs: UserPublicKey[],
   ) {
     return this.createMOfNWallet(userId, walletName, 2, 3, xpubs);
+  }
+
+  async buildWalletSpendPsbt(walletId: string, receivers: Receiver[]) {
+    const utxos = await this.supabase.getWalletUtxos(walletId);
+    const walletData = await this.supabase.getWalletData(walletId);
+
+    const toSendValue = receivers.reduce((acc, receiver) => acc + receiver.amount, 0);
+
+    const utxosSum = utxos.reduce((acc, utxo) => acc + utxo.value, 0);
+
+    if (utxosSum < toSendValue) {
+      throw new Error("Insufficient funds");
+    }
+
+    const inputs = [] as UTXO[];
+    let remainingValue = toSendValue;
+    let estimatedFee = 0; // TODO: estimate fee on every iteration
+    for (const utxo of utxos) {
+      if (remainingValue + estimatedFee <= 0) {
+        break;
+      }
+
+      const txid = utxo.utxo.split(":")[0];
+      const vout = Number(utxo.utxo.split(":")[1]);
+
+      // Derive witness script using the bitcoinWallet's deriveWalletFromXpubs method
+      const derivedAddressInfo = this.bitcoinWallet.deriveWalletFromXpubs(
+        walletData.account_id,
+        walletData.m,
+        walletData.user_xpubs,
+        utxo.address_index,
+        utxo.change
+      );
+      
+      // Verify the derived address matches the UTXO address
+      if (derivedAddressInfo.address !== utxo.address) {
+        throw new Error(`Derived address ${derivedAddressInfo.address} doesn't match UTXO address ${utxo.address}`);
+      }
+
+      inputs.push({
+        txid,
+        vout,
+        value: utxo.value,
+        address: utxo.address,
+        witnessScript: derivedAddressInfo.witnessScript,
+      });
+
+      remainingValue -= utxo.value;
+    }
+
+    const outputs = receivers.map((receiver) => ({
+      address: receiver.address,
+      value: receiver.amount,
+    }));
+
+    const change = remainingValue > 546;
+    if (change) {
+      const [changeAddress] = await this.handoutAddresses(walletId, true, 1);
+      outputs.push({
+        address: changeAddress.address,
+        value: remainingValue,
+      });
+    }
+    
+    // Create and return the unsigned transaction
+    const feeRate = 10; // satoshis per byte - could be dynamic
+    return this.bitcoinWallet.createUnsignedTransaction(inputs, outputs, feeRate);
   }
 }
 
