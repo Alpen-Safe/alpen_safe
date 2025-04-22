@@ -1,4 +1,4 @@
-import BitcoinWallet from "./bitcoinWallet";
+import BitcoinWallet from "./bitcoin/bitcoinWalletModel";
 import Supabase from "../supabase";
 import { Chain, UserPublicKey } from "../types";
 import BitcoinMonitor from "../monitoring/bitcoinMonitor";

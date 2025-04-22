@@ -2,8 +2,8 @@ import { expect } from "chai";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
 import * as bitcoin from "bitcoinjs-lib";
-import { TxOutput, UTXO } from "../model/wallet/bitcoinWallet";
-import BitcoinWallet from "../model/wallet/bitcoinWallet";
+import { TxOutput, UTXO } from "../model/wallet/bitcoin/bitcoinWalletModel";
+import BitcoinWallet from "../model/wallet/bitcoin/bitcoinWalletModel";
 
 // Helper function to access private methods for testing
 const accessPrivateMethod = <T>(instance: any, methodName: string): T => {

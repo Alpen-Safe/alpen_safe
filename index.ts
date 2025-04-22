@@ -9,7 +9,7 @@ import {
 } from "./conf";
 import { createClient } from "@supabase/supabase-js";
 import Supabase from "./model/supabase";
-import BitcoinWallet from "./model/wallet/bitcoinWallet";
+import BitcoinWallet from "./model/wallet/bitcoin/bitcoinWalletModel";
 import WalletManager from "./model/wallet/walletManager";
 import WalletController from "./controller/walletController";
 import AuthController from "./controller/authController";

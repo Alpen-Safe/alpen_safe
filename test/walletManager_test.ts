@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import Supabase from "../model/supabase";
-import BitcoinWallet from "../model/wallet/bitcoinWallet";
+import BitcoinWallet from "../model/wallet/bitcoin/bitcoinWalletModel";
 import { Buffer } from "node:buffer";
 import { networks } from "bitcoinjs-lib";
 import WalletManager from "../model/wallet/walletManager";
