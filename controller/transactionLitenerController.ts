@@ -51,9 +51,24 @@ class TransactionListenerController extends BaseController {
     body("walletId").exists().isString().withMessage("Wallet ID is required"),
   ];
 
-  checkEntireWalletHandler = async (req: Request, res: Response) => {
+  adminScanWallet = async (req: Request, res: Response) => {
     const f = async () => {
       const { walletId } = req.body;
+
+      // long running task, do not await
+      this.checkEntireWallet(walletId);
+
+      return {
+        message: "Wallet check started",
+      }
+    }
+
+    return this.execController(req, res, f);
+  }
+
+  userScanWallet = async (req: Request, res: Response) => {
+    const f = async () => {
+      const walletId = req.walletId as string;
 
       // long running task, do not await
       this.checkEntireWallet(walletId);

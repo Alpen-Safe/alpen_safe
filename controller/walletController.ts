@@ -81,7 +81,6 @@ class WalletController extends BaseController {
 
     return this.execController(req, res, func);
   };
-  
 }
 
 export default WalletController;

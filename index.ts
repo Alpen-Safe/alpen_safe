@@ -81,6 +81,11 @@ userWalletRouter.post(
   walletController.handoutAddresses,
 );
 
+userWalletRouter.post(
+  "/scan",
+  transactionListenerController.userScanWallet,
+);
+
 adminRouter.post(
   "/wallet/sign",
   adminController.signTransactionWithServerValidator,
@@ -88,9 +93,9 @@ adminRouter.post(
 );
 
 adminRouter.post(
-  "/wallet/check",
+  "/wallet/scan",
   transactionListenerController.checkEntireWalletValidator,
-  transactionListenerController.checkEntireWalletHandler,
+  transactionListenerController.adminScanWallet,
 );
 
 app.use("/user", userRouter);
