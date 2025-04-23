@@ -98,6 +98,12 @@ adminRouter.post(
   transactionListenerController.adminScanWallet,
 );
 
+adminRouter.post(
+  "/wallet/build-psbt",
+  adminController.buildWalletSpendPsbtValidator,
+  adminController.buildWalletSpendPsbt,
+);
+
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 app.use("/user/wallet/:walletId", userWalletRouter);

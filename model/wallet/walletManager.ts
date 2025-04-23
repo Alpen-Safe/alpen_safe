@@ -174,7 +174,9 @@ class WalletManager {
     const utxosSum = utxos.reduce((acc, utxo) => acc + utxo.value, 0);
 
     if (utxosSum < toSendValue) {
-      throw new Error("Insufficient funds");
+      return {
+        error: "Insufficient funds",
+      };
     }
 
     const inputs = [] as UTXO[];
@@ -217,6 +219,12 @@ class WalletManager {
       // we update the estimated fee as we add more inputs
       // we assume that the outputs are P2SH
       estimatedFee = calculateTxFees(inputsCount, outputsCount, feePerByte, 'P2WSH', 'P2SH');
+    }
+
+    if (inputValue < toSendValue + estimatedFee) {
+      return {
+        error: "Insufficient funds",
+      };
     }
 
     const outputs = receivers.map((receiver) => ({

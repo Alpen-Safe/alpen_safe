@@ -29,6 +29,24 @@ class AdminController extends BaseController {
 
     return this.execController(req, res, func);
   };
+
+  buildWalletSpendPsbtValidator = [
+    body("walletId").exists().isString(),
+    body("receivers").exists().isArray().isLength({ min: 1 }),
+    body("receivers.*.address").exists().isString(),
+    body("receivers.*.amount").exists().isInt({ min: 546 }).toInt(),
+    body("feePerByte").exists().isInt({ min: 1 }).toInt(),
+  ];
+
+  buildWalletSpendPsbt = (req: Request, res: Response) => {
+    const func = () => {
+      const { walletId, receivers, feePerByte } = req.body;
+
+      return this.walletManager.buildWalletSpendPsbt(walletId, receivers, feePerByte);
+    };
+
+    return this.execController(req, res, func);
+  };
 }
 
 export default AdminController;
