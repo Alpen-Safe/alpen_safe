@@ -118,6 +118,38 @@ export type Database = {
         }
         Relationships: []
       }
+      psbts: {
+        Row: {
+          created_at: string | null
+          id: number
+          psbt_base64: string
+          unsigned_transaction_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          psbt_base64: string
+          unsigned_transaction_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          psbt_base64?: string
+          unsigned_transaction_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "psbts_unsigned_transaction_id_fkey"
+            columns: ["unsigned_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "unsigned_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_keys: {
         Row: {
           account_node_derivation_path: string
@@ -274,6 +306,75 @@ export type Database = {
         }
         Relationships: []
       }
+      unsigned_transaction_inputs: {
+        Row: {
+          unsigned_transaction_id: string
+          utxo_id: number
+        }
+        Insert: {
+          unsigned_transaction_id: string
+          utxo_id: number
+        }
+        Update: {
+          unsigned_transaction_id?: string
+          utxo_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unsigned_transaction_inputs_unsigned_transaction_id_fkey"
+            columns: ["unsigned_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "unsigned_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unsigned_transaction_inputs_utxo_id_fkey"
+            columns: ["utxo_id"]
+            isOneToOne: false
+            referencedRelation: "utxos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unsigned_transactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_complete: boolean
+          is_signing: boolean
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          is_complete?: boolean
+          is_signing?: boolean
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_complete?: boolean
+          is_signing?: boolean
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unsigned_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "unsigned_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "multi_sig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_signers: {
         Row: {
           public_key_id: number
@@ -318,6 +419,7 @@ export type Database = {
           created_at: string
           id: number
           is_spent: boolean
+          reserved: boolean | null
           updated_at: string
           utxo: string
           value: number
@@ -328,6 +430,7 @@ export type Database = {
           created_at?: string
           id?: number
           is_spent?: boolean
+          reserved?: boolean | null
           updated_at?: string
           utxo: string
           value: number
@@ -338,6 +441,7 @@ export type Database = {
           created_at?: string
           id?: number
           is_spent?: boolean
+          reserved?: boolean | null
           updated_at?: string
           utxo?: string
           value?: number
@@ -514,6 +618,17 @@ export type Database = {
           address_index: number
           change: boolean
         }[]
+      }
+      initiate_spend_transaction: {
+        Args: {
+          _unsigned_transaction_id: string
+          _wallet_id: string
+          _psbt_base64: string
+          _inputs: string[]
+          _outputs: Json
+          _fee_per_byte: number
+        }
+        Returns: undefined
       }
       received_utxo_in_monitored_address: {
         Args: {

@@ -243,5 +243,21 @@ class Supabase {
 
     return data;
   }
+
+  initiateSpendTransaction = async (unsignedTransactionId: string, walletId: string, psbtBase64: string, inputs: string[], outputs: any[], feePerByte: number) => {
+    const { error } = await this.supabase.rpc("initiate_spend_transaction", {
+      _unsigned_transaction_id: unsignedTransactionId,
+      _wallet_id: walletId,
+      _psbt_base64: psbtBase64,
+      _inputs: inputs,
+      _outputs: outputs,
+      _fee_per_byte: feePerByte,
+    });
+
+    if (error) {
+      console.error("error initiateSpendTransaction", error.message);
+      throw new Error(error.message);
+    }
+  }
 }
 export default Supabase;

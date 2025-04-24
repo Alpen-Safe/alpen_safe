@@ -5,6 +5,7 @@ import BitcoinMonitor from "../monitoring/bitcoinMonitor";
 import { objectToCamel } from "ts-case-convert";
 import { UTXO } from "./bitcoin/bitcoinWalletModel";
 import { calculateTxFees } from "../../helpers/feeEstimator";
+import { generateInternalTransactionId } from "../../helpers/helpers";
 
 // we fix 1 server signer for now
 // Should apply in all cases
@@ -240,9 +241,39 @@ class WalletManager {
         value: changeValue,
       });
     }
+
+    const psbt = this.bitcoinWallet.createUnsignedTransaction(inputs, outputs);
+    const inputsUsed = inputs.map((input) => (`${input.txid}:${input.vout}`));
     
     // Create and return the unsigned transaction
-    return this.bitcoinWallet.createUnsignedTransaction(inputs, outputs);
+    return {
+      psbtBase64: psbt.psbtBase64,
+      inputs: inputsUsed,
+      outputs,
+    }
+  }
+
+  async initiateSpendTransaction(walletId: string, receivers: Receiver[], feePerByte: number) {
+    const res = await this.buildWalletSpendPsbt(walletId, receivers, feePerByte);
+
+    const { psbtBase64, inputs, outputs } = res;
+
+    if ("error" in res) {
+      return {
+        error: res.error,
+      };
+    }
+
+    if (!inputs) {
+      throw new Error("No UTXOs used");
+    }
+
+    const unsignedTransactionId = generateInternalTransactionId();
+    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte);
+
+    return {
+      psbtBase64: psbtBase64,
+    };
   }
 }
 

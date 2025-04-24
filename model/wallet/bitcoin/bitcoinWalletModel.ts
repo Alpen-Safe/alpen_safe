@@ -41,8 +41,6 @@ export interface TxOutput {
 
 export interface UnsignedTx {
   psbtBase64: string;
-  txid: string;
-  fee: number;
 }
 
 interface SignedTx {
@@ -296,13 +294,12 @@ class BitcoinWallet {
    * Creates an unsigned PSBT for spending from multisig addresses
    * @param utxos UTXOs to spend from
    * @param outputs Transaction outputs
-   * @param feeRate Fee rate in satoshis per byte
    * @returns The unsigned transaction as base64-encoded PSBT
    */
   public createUnsignedTransaction(
     utxos: UTXO[],
     outputs: TxOutput[],
-  ) {
+  ): UnsignedTx {
     if (utxos.length === 0) {
       throw new Error("No UTXOs provided");
     }
@@ -334,9 +331,10 @@ class BitcoinWallet {
       });
     }
 
-
+    const psbtBase64 = psbt.toBase64();
+    
     return {
-      psbtBase64: psbt.toBase64(),
+      psbtBase64,
     };
   }
 
