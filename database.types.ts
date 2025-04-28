@@ -123,24 +123,31 @@ export type Database = {
           created_at: string | null
           id: number
           psbt_base64: string
+          public_key_id: number | null
           unsigned_transaction_id: string
-          user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: number
           psbt_base64: string
+          public_key_id?: number | null
           unsigned_transaction_id: string
-          user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: number
           psbt_base64?: string
+          public_key_id?: number | null
           unsigned_transaction_id?: string
-          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "psbts_public_key_id_fkey"
+            columns: ["public_key_id"]
+            isOneToOne: false
+            referencedRelation: "public_keys"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "psbts_unsigned_transaction_id_fkey"
             columns: ["unsigned_transaction_id"]
@@ -340,22 +347,31 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_broadcasted: boolean
+          is_cancelled: boolean
           is_complete: boolean
           is_signing: boolean
+          signatures_count: number
           wallet_id: string
         }
         Insert: {
           created_at?: string | null
           id: string
+          is_broadcasted?: boolean
+          is_cancelled?: boolean
           is_complete?: boolean
           is_signing?: boolean
+          signatures_count?: number
           wallet_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
+          is_broadcasted?: boolean
+          is_cancelled?: boolean
           is_complete?: boolean
           is_signing?: boolean
+          signatures_count?: number
           wallet_id?: string
         }
         Relationships: [
@@ -640,6 +656,17 @@ export type Database = {
           _confirmed: boolean
         }
         Returns: undefined
+      }
+      submit_signed_psbt: {
+        Args: {
+          _unsigned_transaction_id: string
+          _psbt_base64: string
+          _public_key: string
+        }
+        Returns: {
+          is_complete: boolean
+          signatures_count: number
+        }[]
       }
       user_owns_wallet: {
         Args: { wallet_id: string }

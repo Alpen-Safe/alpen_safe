@@ -275,6 +275,15 @@ class WalletManager {
       psbtBase64: psbtBase64,
     };
   }
+
+  async submitSignedPsbt(unsignedTransactionId: string, psbtBase64: string, userId: string) {
+    // TODO: Verify that the signature is valid
+    // TODO: Verify that the PSBT is valid
+
+    const res = await this.supabase.submitSignedPsbt(unsignedTransactionId, psbtBase64, userId);
+
+    return objectToCamel(res);
+  }
 }
 
 export default WalletManager;

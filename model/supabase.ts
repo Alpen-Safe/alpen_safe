@@ -259,5 +259,20 @@ class Supabase {
       throw new Error(error.message);
     }
   }
+
+  submitSignedPsbt = async (unsignedTransactionId: string, psbtBase64: string, publicKey: string) => {
+    const { error, data } = await this.supabase.rpc("submit_signed_psbt", {
+      _unsigned_transaction_id: unsignedTransactionId,
+      _psbt_base64: psbtBase64,
+      _public_key: publicKey,
+    }).single();
+
+    if (error) {
+      console.error("error submitSignedPsbt", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
 }
 export default Supabase;
