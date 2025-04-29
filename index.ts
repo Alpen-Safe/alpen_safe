@@ -69,12 +69,6 @@ userRouter.post(
   walletController.create2Of3Wallet,
 );
 
-// userWalletRouter.post(
-//   "/addresses",
-//   walletController.deriveWalletAddressesValidator,
-//   walletController.deriveWalletAddresses,
-// );
-
 userWalletRouter.post(
   "/addresses/handout",
   walletController.handoutAddressesValidator,
@@ -85,6 +79,16 @@ userWalletRouter.post(
   "/scan",
   transactionListenerController.userScanWallet,
 );
+
+userWalletRouter.post(
+  '/tx/initiate',
+  walletController.initiateSpendTransactionValidator,
+  walletController.initiateSpendTransaction,
+);
+
+// --- Admin ---
+// TODO: Currently the admin router is not protected by authentication
+// And is exposed to the public internet!!
 
 adminRouter.post(
   "/wallet/sign",

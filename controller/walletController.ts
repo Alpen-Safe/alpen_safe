@@ -61,11 +61,6 @@ class WalletController extends BaseController {
     return this.execController(req, res, func);
   };
 
-  signTransactionWithServerValidator = [
-    body("walletId").exists().isString(),
-    body("transaction").exists().isString(),
-  ];
-
   handoutAddressesValidator = [
     body("isChange").exists().isBoolean(),
     body("amount").exists().isInt({ min: 1, max: 100 }),
@@ -77,6 +72,42 @@ class WalletController extends BaseController {
       const { isChange, amount } = req.body;
 
       return this.walletManager.handoutAddresses(walletId, isChange, amount);
+    };
+
+    return this.execController(req, res, func);
+  };
+
+  
+  initiateSpendTransactionValidator = [
+    body("receivers").exists().isArray().isLength({ min: 1 }).withMessage(
+      "receivers must be an array of at least 1 element",
+    ),
+    body("receivers.*.address").exists().isString().withMessage(
+      "receivers.*.address must be a string",
+    ),
+    body("receivers.*.amount").exists().isInt({ min: 546 }).toInt().withMessage(
+      "receivers.*.amount must be an integer greater than 546",
+    ),
+    body("feePerByte").exists().isInt({ min: 1 }).toInt().withMessage(
+      "feePerByte must be an integer greater than 0",
+    ),
+  ];
+
+  initiateSpendTransaction = (req: Request, res: Response) => {
+    const func = () => {
+      const walletId = req.walletId as string;
+      const userRole = req.userWalletRole as string;
+
+      // TODO: Add more roles and centralize this logic
+      if (userRole !== "admin") {
+        return res.status(403).json({
+          error: "User is not an admin",
+        });
+      }
+
+      const { receivers, feePerByte } = req.body;
+
+      return this.walletManager.initiateSpendTransaction(walletId, receivers, feePerByte);
     };
 
     return this.execController(req, res, func);

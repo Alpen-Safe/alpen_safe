@@ -272,6 +272,7 @@ class WalletManager {
     await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte);
 
     return {
+      internalTransactionId: unsignedTransactionId,
       psbtBase64: psbtBase64,
     };
   }

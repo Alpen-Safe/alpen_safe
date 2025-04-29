@@ -5,6 +5,7 @@ declare global {
     interface Request {
       user?: User;
       walletId?: string;
+      userWalletRole?: string;
     }
   }
 }
