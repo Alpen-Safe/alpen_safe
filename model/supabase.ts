@@ -230,5 +230,50 @@ class Supabase {
 
     return data;
   }
+
+  getWalletUtxos = async (walletId: string) => {
+    const { data, error } = await this.supabase.rpc("get_wallet_utxos", {
+      _wallet_id: walletId,
+    });
+
+    if (error) {
+      console.error("error getWalletUtxos", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  initiateSpendTransaction = async (unsignedTransactionId: string, walletId: string, psbtBase64: string, inputs: string[], outputs: any[], feePerByte: number, initiatedBy: string) => {
+    const { error } = await this.supabase.rpc("initiate_spend_transaction", {
+      _unsigned_transaction_id: unsignedTransactionId,
+      _wallet_id: walletId,
+      _psbt_base64: psbtBase64,
+      _inputs: inputs,
+      _outputs: outputs,
+      _fee_per_byte: feePerByte,
+      _initiated_by: initiatedBy,
+    });
+
+    if (error) {
+      console.error("error initiateSpendTransaction", error.message);
+      throw new Error(error.message);
+    }
+  }
+
+  submitSignedPsbt = async (unsignedTransactionId: string, psbtBase64: string, publicKey: string) => {
+    const { error, data } = await this.supabase.rpc("submit_signed_psbt", {
+      _unsigned_transaction_id: unsignedTransactionId,
+      _psbt_base64: psbtBase64,
+      _public_key: publicKey,
+    }).single();
+
+    if (error) {
+      console.error("error submitSignedPsbt", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
 }
 export default Supabase;

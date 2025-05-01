@@ -69,17 +69,16 @@ class AuthController {
       return res.status(500).json({ error: "Internal server error" });
     }
 
-    const doesUserOwnWallet = walletOwners.some((owner) =>
-      owner.user_id === userId
-    );
+    const user = walletOwners.find((owner) => owner.user_id === userId);
 
-    if (!doesUserOwnWallet) {
+    if (!user) {
       return res.status(403).json({
         error: "User does not have access to this wallet",
       });
     }
 
     req.walletId = walletId;
+    req.userWalletRole = user.role;
     next();
   };
 }

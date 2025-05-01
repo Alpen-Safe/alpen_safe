@@ -1,8 +1,11 @@
 import BitcoinWallet from "./bitcoin/bitcoinWalletModel";
 import Supabase from "../supabase";
-import { Chain, UserPublicKey } from "../types";
+import { Chain, UserPublicKey, Receiver } from "../types";
 import BitcoinMonitor from "../monitoring/bitcoinMonitor";
 import { objectToCamel } from "ts-case-convert";
+import { UTXO } from "./bitcoin/bitcoinWalletModel";
+import { calculateTxFees } from "../../helpers/feeEstimator";
+import { generateInternalTransactionId } from "../../helpers/helpers";
 
 // we fix 1 server signer for now
 // Should apply in all cases
@@ -161,6 +164,126 @@ class WalletManager {
     xpubs: UserPublicKey[],
   ) {
     return this.createMOfNWallet(userId, walletName, 2, 3, xpubs);
+  }
+
+  async buildWalletSpendPsbt(walletId: string, receivers: Receiver[], feePerByte: number) {
+    const utxos = await this.supabase.getWalletUtxos(walletId);
+    const walletData = await this.supabase.getWalletData(walletId);
+
+    const toSendValue = receivers.reduce((acc, receiver) => acc + receiver.amount, 0);
+
+    const utxosSum = utxos.reduce((acc, utxo) => acc + utxo.value, 0);
+
+    if (utxosSum < toSendValue) {
+      return {
+        error: "Insufficient funds",
+      };
+    }
+
+    const inputs = [] as UTXO[];
+    let inputValue = 0;
+    let estimatedFee = 0;
+    for (const utxo of utxos) {
+      if (inputValue >= toSendValue + estimatedFee) {
+        break;
+      }
+
+      const txid = utxo.utxo.split(":")[0];
+      const vout = Number(utxo.utxo.split(":")[1]);
+
+      // Derive witness script using the bitcoinWallet's deriveWalletFromXpubs method
+      const derivedAddressInfo = this.bitcoinWallet.deriveWalletFromXpubs(
+        walletData.account_id,
+        walletData.m,
+        walletData.user_xpubs,
+        utxo.address_index,
+        utxo.change
+      );
+      
+      // Verify the derived address matches the UTXO address
+      if (derivedAddressInfo.address !== utxo.address) {
+        throw new Error(`Derived address ${derivedAddressInfo.address} doesn't match UTXO address ${utxo.address}`);
+      }
+
+      inputs.push({
+        txid,
+        vout,
+        value: utxo.value,
+        address: utxo.address,
+        witnessScript: derivedAddressInfo.witnessScript,
+      });
+
+      inputValue += utxo.value;
+      const outputsCount = receivers.length + 1;
+      const inputsCount = inputs.length;
+
+      // we update the estimated fee as we add more inputs
+      // we assume that the outputs are P2SH
+      estimatedFee = calculateTxFees(inputsCount, outputsCount, feePerByte, 'P2WSH', 'P2SH');
+    }
+
+    if (inputValue < toSendValue + estimatedFee) {
+      return {
+        error: "Insufficient funds",
+      };
+    }
+
+    const outputs = receivers.map((receiver) => ({
+      address: receiver.address,
+      value: receiver.amount,
+    }));
+
+    const changeValue = inputValue - toSendValue - estimatedFee;
+    if (changeValue >= 546) {
+      const [changeAddress] = await this.handoutAddresses(walletId, true, 1);
+      outputs.push({
+        address: changeAddress.address,
+        value: changeValue,
+      });
+    }
+
+    const psbt = this.bitcoinWallet.createUnsignedTransaction(inputs, outputs);
+    const inputsUsed = inputs.map((input) => (`${input.txid}:${input.vout}`));
+    
+    // Create and return the unsigned transaction
+    return {
+      psbtBase64: psbt.psbtBase64,
+      inputs: inputsUsed,
+      outputs,
+    }
+  }
+
+  async initiateSpendTransaction(walletId: string, receivers: Receiver[], feePerByte: number, initiatedBy: string) {
+    const res = await this.buildWalletSpendPsbt(walletId, receivers, feePerByte);
+
+    const { psbtBase64, inputs, outputs } = res;
+
+    if ("error" in res) {
+      return {
+        error: res.error,
+      };
+    }
+
+    if (!inputs) {
+      throw new Error("No UTXOs used");
+    }
+
+    const unsignedTransactionId = generateInternalTransactionId();
+    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte, initiatedBy);
+
+    return {
+      internalTransactionId: unsignedTransactionId,
+      psbtBase64: psbtBase64,
+    };
+  }
+
+  async submitSignedPsbt(unsignedTransactionId: string, psbtBase64: string, userId: string) {
+    // TODO: Verify that the signature is valid
+    // TODO: Verify that the PSBT is valid
+
+    const res = await this.supabase.submitSignedPsbt(unsignedTransactionId, psbtBase64, userId);
+
+    return objectToCamel(res);
   }
 }
 

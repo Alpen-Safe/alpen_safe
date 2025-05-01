@@ -32,7 +32,6 @@ export interface UTXO {
   value: number;
   address: string;
   witnessScript: Buffer;
-  derivationPath: string;
 }
 
 export interface TxOutput {
@@ -42,8 +41,6 @@ export interface TxOutput {
 
 export interface UnsignedTx {
   psbtBase64: string;
-  txid: string;
-  fee: number;
 }
 
 interface SignedTx {
@@ -297,14 +294,12 @@ class BitcoinWallet {
    * Creates an unsigned PSBT for spending from multisig addresses
    * @param utxos UTXOs to spend from
    * @param outputs Transaction outputs
-   * @param feeRate Fee rate in satoshis per byte
    * @returns The unsigned transaction as base64-encoded PSBT
    */
   public createUnsignedTransaction(
     utxos: UTXO[],
     outputs: TxOutput[],
-    feeRate: number,
-  ) {
+  ): UnsignedTx {
     if (utxos.length === 0) {
       throw new Error("No UTXOs provided");
     }
@@ -328,9 +323,6 @@ class BitcoinWallet {
       });
     }
 
-    // Calculate total input amount
-    const totalInput = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
-
     // Add outputs
     for (const output of outputs) {
       psbt.addOutput({
@@ -339,31 +331,10 @@ class BitcoinWallet {
       });
     }
 
-    // Calculate total output amount
-    const totalOutput = outputs.reduce((sum, output) => sum + output.value, 0);
-
-    // Estimate transaction size
-    const inputSize = 180; // Average size for P2WSH input with 2 signatures
-    const outputSize = 43; // Average size for P2WSH output
-    const txOverhead = 11; // Transaction overhead bytes
-    const estimatedSize = txOverhead + (utxos.length * inputSize) +
-      (outputs.length * outputSize);
-
-    // Calculate fee
-    const estimatedFee = Math.ceil(estimatedSize * feeRate);
-
-    // Verify that inputs cover outputs + fee
-    if (totalInput < totalOutput + estimatedFee) {
-      throw new Error(
-        `Insufficient funds. Have: ${totalInput}, Need: ${
-          totalOutput + estimatedFee
-        }`,
-      );
-    }
-
+    const psbtBase64 = psbt.toBase64();
+    
     return {
-      psbtBase64: psbt.toBase64(),
-      fee: estimatedFee,
+      psbtBase64,
     };
   }
 
