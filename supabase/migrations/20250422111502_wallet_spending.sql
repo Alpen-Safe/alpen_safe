@@ -10,6 +10,7 @@ CREATE TABLE unsigned_transactions (
     is_broadcasted BOOLEAN NOT NULL DEFAULT FALSE,
     is_cancelled BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    initiated_by UUID NOT NULL REFERENCES auth.users(id),
     signatures_count INTEGER NOT NULL DEFAULT 0
 );
 
@@ -36,6 +37,7 @@ COMMENT ON COLUMN unsigned_transactions.is_signing IS 'Whether the transaction i
 COMMENT ON COLUMN unsigned_transactions.is_broadcasted IS 'Whether the transaction has been broadcasted to the network';
 COMMENT ON COLUMN unsigned_transactions.is_cancelled IS 'Whether the transaction has been cancelled';
 COMMENT ON COLUMN unsigned_transactions.signatures_count IS 'The number of signatures that have been collected for the transaction';
+COMMENT ON COLUMN unsigned_transactions.initiated_by IS 'The user that initiated the transaction';
 
 CREATE TABLE unsigned_transaction_inputs (
     utxo_id INTEGER NOT NULL REFERENCES utxos(id),
@@ -114,7 +116,7 @@ BEGIN
 END
 $$;
 
-CREATE OR REPLACE FUNCTION initiate_spend_transaction(_unsigned_transaction_id TEXT, _wallet_id UUID, _psbt_base64 TEXT, _inputs TEXT[], _outputs JSONB, _fee_per_byte INTEGER)
+CREATE OR REPLACE FUNCTION initiate_spend_transaction(_unsigned_transaction_id TEXT, _wallet_id UUID, _psbt_base64 TEXT, _inputs TEXT[], _outputs JSONB, _fee_per_byte INTEGER, _initiated_by UUID)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
@@ -125,8 +127,8 @@ BEGIN
     UPDATE utxos SET reserved = true WHERE utxo = ANY(_inputs);
 
     -- Create the unsigned transaction
-    INSERT INTO unsigned_transactions (id, wallet_id, is_complete, is_signing)
-    VALUES (_unsigned_transaction_id, _wallet_id, false, false);
+    INSERT INTO unsigned_transactions (id, wallet_id, is_complete, is_signing, initiated_by)
+    VALUES (_unsigned_transaction_id, _wallet_id, false, false, _initiated_by);
 
     -- Insert the inputs into the unsigned transaction
     FOREACH _input IN ARRAY _inputs LOOP

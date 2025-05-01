@@ -253,7 +253,7 @@ class WalletManager {
     }
   }
 
-  async initiateSpendTransaction(walletId: string, receivers: Receiver[], feePerByte: number) {
+  async initiateSpendTransaction(walletId: string, receivers: Receiver[], feePerByte: number, initiatedBy: string) {
     const res = await this.buildWalletSpendPsbt(walletId, receivers, feePerByte);
 
     const { psbtBase64, inputs, outputs } = res;
@@ -269,7 +269,7 @@ class WalletManager {
     }
 
     const unsignedTransactionId = generateInternalTransactionId();
-    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte);
+    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte, initiatedBy);
 
     return {
       internalTransactionId: unsignedTransactionId,

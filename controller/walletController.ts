@@ -97,6 +97,7 @@ class WalletController extends BaseController {
     const func = () => {
       const walletId = req.walletId as string;
       const userRole = req.userWalletRole as string;
+      const initiatedBy = req.user?.id as string;
 
       // TODO: Add more roles and centralize this logic
       if (userRole !== "admin") {
@@ -107,7 +108,7 @@ class WalletController extends BaseController {
 
       const { receivers, feePerByte } = req.body;
 
-      return this.walletManager.initiateSpendTransaction(walletId, receivers, feePerByte);
+      return this.walletManager.initiateSpendTransaction(walletId, receivers, feePerByte, initiatedBy);
     };
 
     return this.execController(req, res, func);

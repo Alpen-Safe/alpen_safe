@@ -347,6 +347,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          initiated_by: string
           is_broadcasted: boolean
           is_cancelled: boolean
           is_complete: boolean
@@ -357,6 +358,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id: string
+          initiated_by: string
           is_broadcasted?: boolean
           is_cancelled?: boolean
           is_complete?: boolean
@@ -367,6 +369,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          initiated_by?: string
           is_broadcasted?: boolean
           is_cancelled?: boolean
           is_complete?: boolean
@@ -643,6 +646,7 @@ export type Database = {
           _inputs: string[]
           _outputs: Json
           _fee_per_byte: number
+          _initiated_by: string
         }
         Returns: undefined
       }

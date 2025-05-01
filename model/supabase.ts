@@ -244,7 +244,7 @@ class Supabase {
     return data;
   }
 
-  initiateSpendTransaction = async (unsignedTransactionId: string, walletId: string, psbtBase64: string, inputs: string[], outputs: any[], feePerByte: number) => {
+  initiateSpendTransaction = async (unsignedTransactionId: string, walletId: string, psbtBase64: string, inputs: string[], outputs: any[], feePerByte: number, initiatedBy: string) => {
     const { error } = await this.supabase.rpc("initiate_spend_transaction", {
       _unsigned_transaction_id: unsignedTransactionId,
       _wallet_id: walletId,
@@ -252,6 +252,7 @@ class Supabase {
       _inputs: inputs,
       _outputs: outputs,
       _fee_per_byte: feePerByte,
+      _initiated_by: initiatedBy,
     });
 
     if (error) {
