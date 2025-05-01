@@ -120,21 +120,21 @@ export type Database = {
       }
       psbts: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: number
           psbt_base64: string
           public_key_id: number | null
           unsigned_transaction_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: number
           psbt_base64: string
           public_key_id?: number | null
           unsigned_transaction_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: number
           psbt_base64?: string
           public_key_id?: number | null
@@ -345,7 +345,7 @@ export type Database = {
       }
       unsigned_transactions: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
           initiated_by: string
           is_broadcasted: boolean
@@ -356,7 +356,7 @@ export type Database = {
           wallet_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id: string
           initiated_by: string
           is_broadcasted?: boolean
@@ -367,7 +367,7 @@ export type Database = {
           wallet_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           initiated_by?: string
           is_broadcasted?: boolean
