@@ -9,5 +9,6 @@ export type UserPublicKey = {
 
 export type Receiver = {
   address: string;
-  amount: number;
+  value: number;
+  label?: string;
 };

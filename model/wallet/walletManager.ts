@@ -170,7 +170,7 @@ class WalletManager {
     const utxos = await this.supabase.getWalletUtxos(walletId);
     const walletData = await this.supabase.getWalletData(walletId);
 
-    const toSendValue = receivers.reduce((acc, receiver) => acc + receiver.amount, 0);
+    const toSendValue = receivers.reduce((acc, receiver) => acc + receiver.value, 0);
 
     const utxosSum = utxos.reduce((acc, utxo) => acc + utxo.value, 0);
 
@@ -230,7 +230,7 @@ class WalletManager {
 
     const outputs = receivers.map((receiver) => ({
       address: receiver.address,
-      value: receiver.amount,
+      value: receiver.value,
     }));
 
     const changeValue = inputValue - toSendValue - estimatedFee;
@@ -256,7 +256,7 @@ class WalletManager {
   async initiateSpendTransaction(walletId: string, receivers: Receiver[], feePerByte: number, initiatedBy: string) {
     const res = await this.buildWalletSpendPsbt(walletId, receivers, feePerByte);
 
-    const { psbtBase64, inputs, outputs } = res;
+    const { psbtBase64, inputs } = res;
 
     if ("error" in res) {
       return {
@@ -269,7 +269,11 @@ class WalletManager {
     }
 
     const unsignedTransactionId = generateInternalTransactionId();
-    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte, initiatedBy);
+
+    // I am passing the receivers without the change address for now
+    // as this will be used mostly for UI purposes
+    // consider passing the change address as well if we want to have better tracking in the db
+    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, receivers, feePerByte, initiatedBy);
 
     return {
       internalTransactionId: unsignedTransactionId,

@@ -9,7 +9,8 @@
     "build": "tsc",
     "start": "ts-node --project tsconfig.json --files index.ts",
     "dev": "nodemon --watch . --exec ts-node --project tsconfig.json --files index.ts",
-    "serve:prod": "npm run build && node ./dist/index.js"
+    "serve:prod": "npm run build && node ./dist/index.js",
+    "reset:db": "supabase db reset && npx supabase gen types --lang=typescript --local > database.types.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

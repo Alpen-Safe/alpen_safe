@@ -199,7 +199,7 @@ describe("WalletManager", () => {
 
     it("should build a PSBT for a wallet spend", async () => {
       const receivers = [
-        { address: "tb1qe79uqluw0ctp4tnjvxltydea9mwmt0hq5yxuqg", amount: 1000 },
+        { address: "tb1qe79uqluw0ctp4tnjvxltydea9mwmt0hq5yxuqg", value: 1000 },
       ];
       const feePerByte = 10;
 
@@ -221,7 +221,7 @@ describe("WalletManager", () => {
 
     it("should return an error if the wallet has insufficient funds", async () => {
       const receivers = [
-        { address: "tb1qe79uqluw0ctp4tnjvxltydea9mwmt0hq5yxuqg", amount: 100000000 },
+        { address: "tb1qe79uqluw0ctp4tnjvxltydea9mwmt0hq5yxuqg", value: 100000000 },
       ];
       const feePerByte = 10;
 

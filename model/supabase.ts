@@ -1,4 +1,4 @@
-import { Database } from "../database.types";
+import { Database, Json } from "../database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { UserPublicKey } from "./types";
 import { objectToSnake } from "ts-case-convert";
@@ -244,7 +244,7 @@ class Supabase {
     return data;
   }
 
-  initiateSpendTransaction = async (unsignedTransactionId: string, walletId: string, psbtBase64: string, inputs: string[], outputs: any[], feePerByte: number, initiatedBy: string) => {
+  initiateSpendTransaction = async (unsignedTransactionId: string, walletId: string, psbtBase64: string, inputs: string[], outputs: Json[], feePerByte: number, initiatedBy: string) => {
     const { error } = await this.supabase.rpc("initiate_spend_transaction", {
       _unsigned_transaction_id: unsignedTransactionId,
       _wallet_id: walletId,
