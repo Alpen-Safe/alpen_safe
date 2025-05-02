@@ -187,6 +187,45 @@ export type Database = {
         }
         Relationships: []
       }
+      recipient_addresses: {
+        Row: {
+          address: string
+          created_at: string
+          id: number
+          label: string | null
+          wallet_id: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: number
+          label?: string | null
+          wallet_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: number
+          label?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipient_addresses_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "recipient_addresses_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "multi_sig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       server_signers: {
         Row: {
           account_id: number
@@ -317,14 +356,17 @@ export type Database = {
         Row: {
           unsigned_transaction_id: string
           utxo_id: number
+          vin: number | null
         }
         Insert: {
           unsigned_transaction_id: string
           utxo_id: number
+          vin?: number | null
         }
         Update: {
           unsigned_transaction_id?: string
           utxo_id?: number
+          vin?: number | null
         }
         Relationships: [
           {
@@ -339,6 +381,42 @@ export type Database = {
             columns: ["utxo_id"]
             isOneToOne: false
             referencedRelation: "utxos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unsigned_transaction_outputs: {
+        Row: {
+          amount: number | null
+          recipient_address_id: number | null
+          unsigned_transaction_id: string | null
+          vout: number | null
+        }
+        Insert: {
+          amount?: number | null
+          recipient_address_id?: number | null
+          unsigned_transaction_id?: string | null
+          vout?: number | null
+        }
+        Update: {
+          amount?: number | null
+          recipient_address_id?: number | null
+          unsigned_transaction_id?: string | null
+          vout?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unsigned_transaction_outputs_recipient_address_id_fkey"
+            columns: ["recipient_address_id"]
+            isOneToOne: false
+            referencedRelation: "recipient_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unsigned_transaction_outputs_unsigned_transaction_id_fkey"
+            columns: ["unsigned_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "unsigned_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -598,6 +676,10 @@ export type Database = {
             }
         Returns: number
       }
+      get_or_create_recipient_address: {
+        Args: { _wallet_id: string; _address: string; _label?: string }
+        Returns: number
+      }
       get_tx_history: {
         Args: { _wallet_id: string }
         Returns: {
@@ -644,7 +726,7 @@ export type Database = {
           _wallet_id: string
           _psbt_base64: string
           _inputs: string[]
-          _outputs: Json
+          _outputs: Json[]
           _fee_per_byte: number
           _initiated_by: string
         }

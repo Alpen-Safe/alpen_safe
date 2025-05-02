@@ -85,9 +85,13 @@ class WalletController extends BaseController {
     body("receivers.*.address").exists().isString().withMessage(
       "receivers.*.address must be a string",
     ),
-    body("receivers.*.amount").exists().isInt({ min: 546 }).toInt().withMessage(
-      "receivers.*.amount must be an integer greater than 546",
+    body("receivers.*.value").exists().isInt({ min: 546 }).toInt().withMessage(
+      "receivers.*.value must be an integer greater than 546",
     ),
+    body("receivers.*.label").optional({ nullable: true }).isString()
+      .withMessage(
+        "label must be a string or null",
+      ),
     body("feePerByte").exists().isInt({ min: 1 }).toInt().withMessage(
       "feePerByte must be an integer greater than 0",
     ),
