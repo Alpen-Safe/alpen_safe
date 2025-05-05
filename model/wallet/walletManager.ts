@@ -244,19 +244,27 @@ class WalletManager {
 
     const psbt = this.bitcoinWallet.createUnsignedTransaction(inputs, outputs);
     const inputsUsed = inputs.map((input) => (`${input.txid}:${input.vout}`));
-    
+
+    const outputValue = outputs.reduce((acc, output) => acc + output.value, 0);
+    const finalFee = inputValue - outputValue;
+    const totalSpent = toSendValue + finalFee;
+
+    // TODO: Randomize the input and output order if not ordinals transaction
+
     // Create and return the unsigned transaction
     return {
       psbtBase64: psbt.psbtBase64,
       inputs: inputsUsed,
       outputs,
+      totalSpent,
+      fee: finalFee,
     }
   }
 
   async initiateSpendTransaction(walletId: string, receivers: Receiver[], feePerByte: number, initiatedBy: string) {
     const res = await this.buildWalletSpendPsbt(walletId, receivers, feePerByte);
 
-    const { psbtBase64, inputs } = res;
+    const { psbtBase64, inputs, totalSpent, fee } = res;
 
     if ("error" in res) {
       return {
@@ -264,8 +272,16 @@ class WalletManager {
       };
     }
 
+    if (!totalSpent) {
+      throw new Error("Total spent is not set");
+    }
+
     if (!inputs) {
       throw new Error("No UTXOs used");
+    }
+
+    if (!fee) {
+      throw new Error("Fee is not set");
     }
 
     const unsignedTransactionId = generateInternalTransactionId();
@@ -273,7 +289,7 @@ class WalletManager {
     // I am passing the receivers without the change address for now
     // as this will be used mostly for UI purposes
     // consider passing the change address as well if we want to have better tracking in the db
-    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, receivers, feePerByte, initiatedBy);
+    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, receivers, feePerByte, initiatedBy, totalSpent, fee);
 
     return {
       internalTransactionId: unsignedTransactionId,

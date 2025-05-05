@@ -433,6 +433,7 @@ export type Database = {
           is_complete: boolean
           is_signing: boolean
           signatures_count: number
+          total_spent: number
           wallet_id: string
         }
         Insert: {
@@ -446,6 +447,7 @@ export type Database = {
           is_complete?: boolean
           is_signing?: boolean
           signatures_count?: number
+          total_spent?: number
           wallet_id: string
         }
         Update: {
@@ -459,6 +461,7 @@ export type Database = {
           is_complete?: boolean
           is_signing?: boolean
           signatures_count?: number
+          total_spent?: number
           wallet_id?: string
         }
         Relationships: [
@@ -735,6 +738,8 @@ export type Database = {
           _outputs: Json[]
           _fee_per_byte: number
           _initiated_by: string
+          _total_spent: number
+          _fee_base_currency_amount: number
         }
         Returns: undefined
       }

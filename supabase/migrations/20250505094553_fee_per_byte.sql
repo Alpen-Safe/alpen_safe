@@ -1,12 +1,14 @@
 ALTER TABLE unsigned_transactions ADD COLUMN fee_per_byte INTEGER NOT NULL DEFAULT 0;
 COMMENT ON COLUMN unsigned_transactions.fee_per_byte IS 'The fee per byte for the transaction';
 
-ALTER TABLE unsigned_transactions ADD COLUMN fee_base_currency_amount INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE unsigned_transactions ADD COLUMN fee_base_currency_amount BIGINT NOT NULL DEFAULT 0;
 COMMENT ON COLUMN unsigned_transactions.fee_base_currency_amount IS 'The fee in base currency for the transaction';
 
+ALTER TABLE unsigned_transactions ADD COLUMN total_spent BIGINT NOT NULL DEFAULT 0;
+COMMENT ON COLUMN unsigned_transactions.total_spent IS 'The total amount spent in the transaction, including the fee';
 
 DROP FUNCTION IF EXISTS initiate_spend_transaction;
-CREATE OR REPLACE FUNCTION initiate_spend_transaction(_unsigned_transaction_id TEXT, _wallet_id UUID, _psbt_base64 TEXT, _inputs TEXT[], _outputs JSONB[], _fee_per_byte INTEGER, _initiated_by UUID)
+CREATE OR REPLACE FUNCTION initiate_spend_transaction(_unsigned_transaction_id TEXT, _wallet_id UUID, _psbt_base64 TEXT, _inputs TEXT[], _outputs JSONB[], _fee_per_byte INTEGER, _initiated_by UUID, _total_spent BIGINT, _fee_base_currency_amount BIGINT)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
@@ -22,8 +24,8 @@ BEGIN
     UPDATE utxos SET reserved = true WHERE utxo = ANY(_inputs);
 
     -- Create the unsigned transaction
-    INSERT INTO unsigned_transactions (id, wallet_id, is_complete, is_signing, initiated_by, fee_per_byte)
-    VALUES (_unsigned_transaction_id, _wallet_id, false, false, _initiated_by, _fee_per_byte);
+    INSERT INTO unsigned_transactions (id, wallet_id, is_complete, is_signing, initiated_by, fee_per_byte, total_spent, fee_base_currency_amount)
+    VALUES (_unsigned_transaction_id, _wallet_id, false, false, _initiated_by, _fee_per_byte, _total_spent, _fee_base_currency_amount);
 
     -- Insert the inputs into the unsigned transaction
     FOREACH _input IN ARRAY _inputs LOOP
