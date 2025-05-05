@@ -424,6 +424,8 @@ export type Database = {
       unsigned_transactions: {
         Row: {
           created_at: string
+          fee_base_currency_amount: number
+          fee_per_byte: number
           id: string
           initiated_by: string
           is_broadcasted: boolean
@@ -435,6 +437,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          fee_base_currency_amount?: number
+          fee_per_byte?: number
           id: string
           initiated_by: string
           is_broadcasted?: boolean
@@ -446,6 +450,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          fee_base_currency_amount?: number
+          fee_per_byte?: number
           id?: string
           initiated_by?: string
           is_broadcasted?: boolean
