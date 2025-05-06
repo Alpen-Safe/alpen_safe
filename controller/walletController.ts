@@ -25,7 +25,7 @@ class WalletController extends BaseController {
     body("userXPubs.*.device").exists().isString().withMessage(
       "device must be a string",
     ),
-    body("userXPubs.*.masterFingerprint").exists().isString().withMessage(
+    body("userXPubs.*.masterFingerprint").optional({ nullable: true }).isString().withMessage(
       "masterFingerprint must be a string",
     ),
     body("userXPubs.*.label").optional({ nullable: true }).isString()

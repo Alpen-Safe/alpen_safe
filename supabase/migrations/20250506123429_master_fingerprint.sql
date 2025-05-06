@@ -1,6 +1,6 @@
-ALTER TABLE public_keys ADD COLUMN master_fingerprint TEXT NOT NULL;
+ALTER TABLE public_keys ADD COLUMN master_fingerprint TEXT;
 
-
+COMMENT ON COLUMN public_keys.master_fingerprint IS 'The master fingerprint of the device that generated the public key';
 
 DROP FUNCTION IF EXISTS get_or_create_public_key(UUID, TEXT, TEXT);
 
@@ -11,7 +11,7 @@ CREATE FUNCTION get_or_create_public_key(
     _xpub TEXT,
     _account_node_derivation_path TEXT,
     _device TEXT,
-    _master_fingerprint TEXT,
+    _master_fingerprint TEXT DEFAULT NULL,
     _label TEXT DEFAULT NULL
 ) RETURNS INT AS $$
 DECLARE

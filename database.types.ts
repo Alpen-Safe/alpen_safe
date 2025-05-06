@@ -164,7 +164,7 @@ export type Database = {
           device: string
           id: number
           label: string | null
-          master_fingerprint: string
+          master_fingerprint: string | null
           user_id: string
           xpub: string
         }
@@ -174,7 +174,7 @@ export type Database = {
           device: string
           id?: number
           label?: string | null
-          master_fingerprint: string
+          master_fingerprint?: string | null
           user_id: string
           xpub: string
         }
@@ -184,7 +184,7 @@ export type Database = {
           device?: string
           id?: number
           label?: string | null
-          master_fingerprint?: string
+          master_fingerprint?: string | null
           user_id?: string
           xpub?: string
         }
@@ -665,7 +665,7 @@ export type Database = {
           _xpub: string
           _account_node_derivation_path: string
           _device: string
-          _master_fingerprint: string
+          _master_fingerprint?: string
           _label?: string
         }
         Returns: number
