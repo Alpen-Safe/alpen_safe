@@ -59,8 +59,8 @@ INSERT INTO public.addresses (id, wallet_id, address, address_index, change, cre
 -- Data for Name: public_keys; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.public_keys (id, user_id, xpub, account_node_derivation_path, device, created_at, label) VALUES (1, '0c36d1ff-ebb9-4689-b182-9ca8bf5e5bd3', 'tpubDFRzvugMc1gKy96y5Kt4fRN44aEgHTWEc4wH8Dt7wq5JkKVz4NyMW8Wut2WY2JX6fNYL5TuHBVywZwXBBreA75TE53QnLMHbuSEtAdxX1as', 'm/48''/1''/0''/2''', 'ledger', '2025-04-15 12:24:21.378627+00', 'Safe Key');
-INSERT INTO public.public_keys (id, user_id, xpub, account_node_derivation_path, device, created_at, label) VALUES (2, '0c36d1ff-ebb9-4689-b182-9ca8bf5e5bd3', 'tpubDEvN39G5h5VauvQpq3wvkzQo3fSvf1kbKvd9Y6JSVrKSsdAEXH7ysV2D1DGwdS6KSB7GeKXSmhFkHru3mugDgSJQ2eay5jnQmHHJfsgvafu', 'm/48''/1''/1''/2''', 'ledger', '2025-04-15 12:24:21.378627+00', 'Home Key');
+INSERT INTO public.public_keys (id, user_id, xpub, account_node_derivation_path, device, created_at, label, master_fingerprint) VALUES (1, '0c36d1ff-ebb9-4689-b182-9ca8bf5e5bd3', 'tpubDFRzvugMc1gKy96y5Kt4fRN44aEgHTWEc4wH8Dt7wq5JkKVz4NyMW8Wut2WY2JX6fNYL5TuHBVywZwXBBreA75TE53QnLMHbuSEtAdxX1as', 'm/48''/1''/0''/2''', 'ledger', '2025-04-15 12:24:21.378627+00', 'Safe Key', '428f8713');
+INSERT INTO public.public_keys (id, user_id, xpub, account_node_derivation_path, device, created_at, label, master_fingerprint) VALUES (2, '0c36d1ff-ebb9-4689-b182-9ca8bf5e5bd3', 'tpubDEvN39G5h5VauvQpq3wvkzQo3fSvf1kbKvd9Y6JSVrKSsdAEXH7ysV2D1DGwdS6KSB7GeKXSmhFkHru3mugDgSJQ2eay5jnQmHHJfsgvafu', 'm/48''/1''/1''/2''', 'ledger', '2025-04-15 12:24:21.378627+00', 'Home Key', '428f8713');
 
 
 --

@@ -4,6 +4,8 @@ export type UserPublicKey = {
   xpub: string;
   path: string;
   device: string;
+  masterFingerprint: string;
+  label?: string;
 };
 
 

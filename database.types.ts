@@ -164,6 +164,7 @@ export type Database = {
           device: string
           id: number
           label: string | null
+          master_fingerprint: string
           user_id: string
           xpub: string
         }
@@ -173,6 +174,7 @@ export type Database = {
           device: string
           id?: number
           label?: string | null
+          master_fingerprint: string
           user_id: string
           xpub: string
         }
@@ -182,6 +184,7 @@ export type Database = {
           device?: string
           id?: number
           label?: string | null
+          master_fingerprint?: string
           user_id?: string
           xpub?: string
         }
@@ -641,48 +644,30 @@ export type Database = {
         Returns: undefined
       }
       create_wallet: {
-        Args:
-          | {
-              _user_id: string
-              _wallet_name: string
-              _m: number
-              _n: number
-              _chain: Database["public"]["Enums"]["supported_chains"]
-              _wallet_descriptor: string
-              _server_signers: number
-              _server_signer_id: number
-              _server_signer_derivation_path: string
-              _server_xpub: string
-              _user_public_keys: Json[]
-            }
-          | {
-              _user_id: string
-              _wallet_name: string
-              _m: number
-              _n: number
-              _chain: Database["public"]["Enums"]["supported_chains"]
-              _wallet_descriptor: string
-              _server_signers: number
-              _server_signer_id: number
-              _server_signer_derivation_path: string
-              _user_public_keys: Json[]
-            }
+        Args: {
+          _user_id: string
+          _wallet_name: string
+          _m: number
+          _n: number
+          _chain: Database["public"]["Enums"]["supported_chains"]
+          _wallet_descriptor: string
+          _server_signers: number
+          _server_signer_id: number
+          _server_signer_derivation_path: string
+          _server_xpub: string
+          _user_public_keys: Json[]
+        }
         Returns: string
       }
       get_or_create_public_key: {
-        Args:
-          | {
-              _user_id: string
-              _xpub: string
-              _account_node_derivation_path: string
-            }
-          | {
-              _user_id: string
-              _xpub: string
-              _account_node_derivation_path: string
-              _device: string
-              _label?: string
-            }
+        Args: {
+          _user_id: string
+          _xpub: string
+          _account_node_derivation_path: string
+          _device: string
+          _master_fingerprint: string
+          _label?: string
+        }
         Returns: number
       }
       get_or_create_recipient_address: {

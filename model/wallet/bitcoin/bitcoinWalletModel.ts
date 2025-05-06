@@ -170,8 +170,8 @@ class BitcoinWallet {
 
     // Format: wsh(multi(2,xpub1/0/*,xpub2/0/*,...))
     const xpubPaths = [
-      `${xpub}/0/*`, // Receive path
-      ...userXpubs.map((xpub) => `${xpub}/0/*`),
+      `${xpub}/<0;1>/*`, // Receive path
+      ...userXpubs.map((xpub) => `${xpub}/<0;1>/*`),
     ].join(",");
 
     const walletDescriptor = `wsh(multi(${m},${xpubPaths}))`;

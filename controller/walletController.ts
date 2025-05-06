@@ -25,10 +25,14 @@ class WalletController extends BaseController {
     body("userXPubs.*.device").exists().isString().withMessage(
       "device must be a string",
     ),
+    body("userXPubs.*.masterFingerprint").exists().isString().withMessage(
+      "masterFingerprint must be a string",
+    ),
     body("userXPubs.*.label").optional({ nullable: true }).isString()
       .withMessage(
         "label must be a string or null",
-      ),
+    ),
+
   ];
 
   create2Of3Wallet = (req: Request, res: Response) => {
