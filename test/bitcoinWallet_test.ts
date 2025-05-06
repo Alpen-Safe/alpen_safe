@@ -206,7 +206,7 @@ describe("BitcoinWallet", () => {
         .createWalletDescriptor(0, 2, [userXpub]);
 
       const { xpub } = wallet.getServerAccountXpub(0);
-      const expectedFormat = `wsh(multi(2,${xpub}/0/*,${userXpub}/0/*))`;
+      const expectedFormat = `wsh(sortedmulti(2,${xpub}/<0;1>/*,${userXpub}/<0;1>/*))`;
 
       expect(walletDescriptor).to.equal(expectedFormat);
       expect(serverDerivationPath).to.equal("m/48'/1'/0'/2'");
@@ -230,7 +230,7 @@ describe("BitcoinWallet", () => {
       const commas = walletDescriptor.match(/,/g) || [];
       expect(commas.length - 1).to.equal(userXpubs.length);
       expect(walletDescriptor).to.equal(
-        "wsh(multi(2,tpubDFH9dgzveyD8zTbPUFuLrGmCydNvxehyNdUXKJAQN8x4aZ4j6UZqGfnqFrD4NqyaTVGKbvEW54tsvPTK2UoSbCC1PJY8iCNiwTL3RWZEheQ/0/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/0/*))",
+        "wsh(sortedmulti(2,tpubDFH9dgzveyD8zTbPUFuLrGmCydNvxehyNdUXKJAQN8x4aZ4j6UZqGfnqFrD4NqyaTVGKbvEW54tsvPTK2UoSbCC1PJY8iCNiwTL3RWZEheQ/<0;1>/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/<0;1>/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/<0;1>/*))",
       );
     });
   });

@@ -168,13 +168,15 @@ class BitcoinWallet {
   ) {
     const { xpub, path } = this.getServerAccountXpub(accountId);
 
-    // Format: wsh(multi(2,xpub1/0/*,xpub2/0/*,...))
+    // https://blog.casa.io/introducing-wallet-descriptors/
+    // Format: wsh(multi(2,xpub1/<0;1>/*,xpub2/<0;1>/*,...))
+    // TODO: Add the []
     const xpubPaths = [
       `${xpub}/<0;1>/*`, // Receive path
       ...userXpubs.map((xpub) => `${xpub}/<0;1>/*`),
     ].join(",");
 
-    const walletDescriptor = `wsh(multi(${m},${xpubPaths}))`;
+    const walletDescriptor = `wsh(sortedmulti(${m},${xpubPaths}))`;
 
     return {
       walletDescriptor,
@@ -228,6 +230,7 @@ class BitcoinWallet {
     }
 
     // 3. Combine and sort all public keys (server + users)
+    // sort for sorted multisig
     const pubKeys = [serverKeyPair.publicKey, ...userKeys].sort((a, b) =>
       Buffer.compare(a, b)
     );
