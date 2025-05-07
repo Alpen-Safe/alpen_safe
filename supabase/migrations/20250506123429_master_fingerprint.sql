@@ -80,3 +80,56 @@ BEGIN
     RETURN _wallet_id;
 END;
 $$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS get_wallet_data(UUID);
+CREATE FUNCTION get_wallet_data(
+    _wallet_id UUID
+) RETURNS TABLE (
+    account_id INT,
+    m INT,
+    user_xpubs TEXT[],
+    user_master_fingerprints TEXT[],
+    user_derivation_paths TEXT[]
+) AS $$
+DECLARE
+    _account_id INT;
+    _m INT;
+    _user_xpubs TEXT[];
+    _user_master_fingerprints TEXT[];
+    _user_derivation_paths TEXT[];
+BEGIN
+    SELECT ss.account_id
+    INTO _account_id
+    FROM server_signers ss
+    WHERE ss.wallet_id = _wallet_id;
+
+    SELECT msw.m
+    INTO _m
+    FROM multi_sig_wallets msw
+    WHERE msw.id = _wallet_id;
+
+    -- we need to order by id ASC to get the correct order of the public keys
+    SELECT array_agg(pk.xpub ORDER BY pk.id ASC)
+    INTO _user_xpubs
+    FROM public_keys pk
+    JOIN user_signers us ON pk.id = us.public_key_id
+    WHERE us.wallet_id = _wallet_id;
+
+    -- we need to order by id ASC to get the correct order of the public keys
+    SELECT array_agg(pk.master_fingerprint ORDER BY pk.id ASC)
+    INTO _user_master_fingerprints
+    FROM public_keys pk
+    JOIN user_signers us ON pk.id = us.public_key_id
+    WHERE us.wallet_id = _wallet_id;
+
+    -- we need to order by id ASC to get the correct order of the public keys
+    SELECT array_agg(pk.account_node_derivation_path ORDER BY pk.id ASC)
+    INTO _user_derivation_paths
+    FROM public_keys pk
+    JOIN user_signers us ON pk.id = us.public_key_id
+    WHERE us.wallet_id = _wallet_id;
+
+    RETURN QUERY SELECT _account_id, _m, _user_xpubs, _user_master_fingerprints, _user_derivation_paths;
+END;
+$$ LANGUAGE plpgsql;

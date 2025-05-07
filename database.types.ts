@@ -692,6 +692,8 @@ export type Database = {
           account_id: number
           m: number
           user_xpubs: string[]
+          user_master_fingerprints: string[]
+          user_derivation_paths: string[]
         }[]
       }
       get_wallet_utxos: {

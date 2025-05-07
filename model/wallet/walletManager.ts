@@ -197,7 +197,9 @@ class WalletManager {
         walletData.m,
         walletData.user_xpubs,
         utxo.address_index,
-        utxo.change
+        utxo.change,
+        walletData.user_master_fingerprints,
+        walletData.user_derivation_paths
       );
       
       // Verify the derived address matches the UTXO address
@@ -211,6 +213,7 @@ class WalletManager {
         value: utxo.value,
         address: utxo.address,
         witnessScript: derivedAddressInfo.witnessScript,
+        bip32Derivations: derivedAddressInfo.bip32Derivations,
       });
 
       inputValue += utxo.value;
