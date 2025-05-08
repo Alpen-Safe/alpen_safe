@@ -2,6 +2,68 @@ ALTER TABLE public_keys ADD COLUMN master_fingerprint TEXT;
 
 COMMENT ON COLUMN public_keys.master_fingerprint IS 'The master fingerprint of the device that generated the public key';
 
+CREATE TABLE ledger_policies (
+    policy_id_hex TEXT NOT NULL,
+    policy_hmac_hex TEXT NOT NULL,
+    wallet_id UUID NOT NULL REFERENCES multi_sig_wallets(id),
+    public_key_id INT NOT NULL REFERENCES public_keys(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (wallet_id, public_key_id)
+);
+
+COMMENT ON TABLE ledger_policies IS 'Ledger app policies for the multi-sig wallet';
+COMMENT ON COLUMN ledger_policies.policy_id_hex IS 'The policy ID of the ledger app';
+COMMENT ON COLUMN ledger_policies.policy_hmac_hex IS 'The HMAC of the policy ID';
+COMMENT ON COLUMN ledger_policies.wallet_id IS 'The multi-sig wallet ID';
+COMMENT ON COLUMN ledger_policies.public_key_id IS 'The public key ID';
+COMMENT ON COLUMN ledger_policies.created_at IS 'The creation date of the policy';
+COMMENT ON COLUMN ledger_policies.updated_at IS 'The last update date of the policy';
+
+ALTER TABLE ledger_policies ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own wallet policies"
+ON ledger_policies
+FOR SELECT
+TO authenticated
+USING (
+    user_owns_wallet(ledger_policies.wallet_id)
+);
+
+CREATE OR REPLACE FUNCTION create_ledger_policy(
+    _wallet_id UUID,
+    _xpub TEXT,
+    _policy_id_hex TEXT,
+    _policy_hmac_hex TEXT
+) RETURNS VOID AS $$
+DECLARE
+    _public_key_id INT;
+    _exists BOOLEAN;
+BEGIN
+    SELECT id INTO _public_key_id
+    FROM public_keys
+    WHERE xpub = _xpub;
+
+
+    IF _public_key_id IS NULL THEN
+        RAISE EXCEPTION 'Public key not found';
+    END IF;
+
+    SELECT EXISTS (
+        SELECT 1
+        FROM ledger_policies
+        WHERE wallet_id = _wallet_id AND public_key_id = _public_key_id
+    ) INTO _exists;
+
+    IF _exists THEN
+        RAISE EXCEPTION 'Ledger policy already exists';
+    END IF;
+
+    INSERT INTO ledger_policies (wallet_id, public_key_id, policy_id_hex, policy_hmac_hex)
+    VALUES (_wallet_id, _public_key_id, _policy_id_hex, _policy_hmac_hex);
+END;
+$$ LANGUAGE plpgsql;
+
 DROP FUNCTION IF EXISTS get_or_create_public_key(UUID, TEXT, TEXT);
 
 DROP FUNCTION IF EXISTS get_or_create_public_key(UUID, TEXT, TEXT, TEXT, TEXT);

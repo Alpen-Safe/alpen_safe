@@ -277,5 +277,36 @@ class Supabase {
 
     return data;
   }
+
+  addLedgerPolicy = async (walletId: string, publicKey: string, policyIdHex: string, policyHmacHex: string) => {
+    const { error, data } = await this.supabase.rpc("create_ledger_policy", {
+      _wallet_id: walletId,
+      _xpub: publicKey,
+      _policy_id_hex: policyIdHex,
+      _policy_hmac_hex: policyHmacHex,
+    });
+
+    if (error) {
+      console.error("error addLedgerPolicy", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  getLedgerPolicy = async (walletId: string, xpub: string) => {
+    const { data, error } = await this.supabase
+      .from("ledger_policies")
+      .select("wallet_id, public_keys (id, xpub )")
+      .eq("wallet_id", walletId)
+      .eq("public_keys.xpub", xpub);
+
+    if (error) {
+      console.error("error getLedgerPolicies", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
 }
 export default Supabase;

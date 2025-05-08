@@ -121,6 +121,40 @@ class WalletController extends BaseController {
 
     return this.execController(req, res, func);
   };
+
+  addLedgerPolicyValidator = [
+    body("publicKey").exists().isString().withMessage(
+      "publicKey must be a string",
+    ),
+    body("policyIdHex").exists().isString().withMessage(
+      "policyIdHex must be a string",
+    ),
+    body("policyHmacHex").exists().isString().withMessage(
+      "policyHmacHex must be a string",
+    ),
+  ];
+
+  addLedgerPolicy = (req: Request, res: Response) => {
+    const func = () => {
+      const userRole = req.userWalletRole as string;
+      const walletId = req.walletId as string;
+
+      // TODO: Add more roles and centralize this logic
+      if (userRole !== "admin") {
+        return res.status(403).json({
+          error: "User is not an admin",
+        });
+      }
+
+      const { publicKey, policyIdHex, policyHmacHex } = req.body;
+
+      return this.walletManager.addLedgerPolicy(walletId, publicKey, policyIdHex, policyHmacHex);
+    };
+
+    return this.execController(req, res, func);
+  };
+
+
 }
 
 export default WalletController;

@@ -300,6 +300,24 @@ class WalletManager {
     };
   }
 
+  async addLedgerPolicy(walletId: string, publicKey: string, policyIdHex: string, policyHmacHex: string) {
+    const existingPolicy = await this.supabase.getLedgerPolicy(walletId, publicKey);
+
+    if (existingPolicy) {
+      return {
+        error: "Policy already exists for this wallet and public key",
+      };
+    }
+
+    await this.supabase.addLedgerPolicy(walletId, publicKey, policyIdHex, policyHmacHex);
+
+    return {
+      success: true,
+    };
+  }
+  
+  
+
   async submitSignedPsbt(unsignedTransactionId: string, psbtBase64: string, userId: string) {
     // TODO: Verify that the signature is valid
     // TODO: Verify that the PSBT is valid

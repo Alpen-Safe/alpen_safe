@@ -86,6 +86,12 @@ userWalletRouter.post(
   walletController.initiateSpendTransaction,
 );
 
+userWalletRouter.put(
+  "/wallet/ledger-policy",
+  walletController.addLedgerPolicyValidator,
+  walletController.addLedgerPolicy,
+);
+
 // --- Admin ---
 // TODO: Currently the admin router is not protected by authentication
 // And is exposed to the public internet!!

@@ -82,6 +82,55 @@ export type Database = {
           },
         ]
       }
+      ledger_policies: {
+        Row: {
+          created_at: string | null
+          policy_hmac_hex: string
+          policy_id_hex: string
+          public_key_id: number
+          updated_at: string | null
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          policy_hmac_hex: string
+          policy_id_hex: string
+          public_key_id: number
+          updated_at?: string | null
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string | null
+          policy_hmac_hex?: string
+          policy_id_hex?: string
+          public_key_id?: number
+          updated_at?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_policies_public_key_id_fkey"
+            columns: ["public_key_id"]
+            isOneToOne: false
+            referencedRelation: "public_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_policies_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "ledger_policies_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "multi_sig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       multi_sig_wallets: {
         Row: {
           chain: Database["public"]["Enums"]["supported_chains"]
@@ -641,6 +690,15 @@ export type Database = {
     Functions: {
       create_addresses: {
         Args: { _wallet_id: string; _addresses: Json }
+        Returns: undefined
+      }
+      create_ledger_policy: {
+        Args: {
+          _wallet_id: string
+          _xpub: string
+          _policy_id_hex: string
+          _policy_hmac_hex: string
+        }
         Returns: undefined
       }
       create_wallet: {
