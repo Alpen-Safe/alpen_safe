@@ -68,3 +68,10 @@ if (!ESPLORA_URL) {
     "Please define the ESPLORA_URL environment variable inside .env.local",
   );
 }
+
+export const ADMIN_SECRET = process.env.ADMIN_SECRET as string;
+if (!ADMIN_SECRET) {
+  throw new Error(
+    "Please define the ADMIN_SECRET environment variable inside .env.local",
+  );
+}

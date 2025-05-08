@@ -6,6 +6,7 @@ import {
   SUPABSE_SERVICE_KEY,
   ZMQ_URL,
   ESPLORA_URL,
+  ADMIN_SECRET,
 } from "./conf";
 import { createClient } from "@supabase/supabase-js";
 import Supabase from "./model/supabase";
@@ -39,7 +40,7 @@ const walletManager = new WalletManager({
 });
 const authController = new AuthController({ supabase });
 const walletController = new WalletController({ walletManager });
-const adminController = new AdminController({ walletManager });
+const adminController = new AdminController({ walletManager, adminSecret: ADMIN_SECRET });
 
 const transactionListenerController = new TransactionListenerController({
   zmqUrl: ZMQ_URL,
@@ -93,8 +94,10 @@ userWalletRouter.put(
 );
 
 // --- Admin ---
-// TODO: Currently the admin router is not protected by authentication
-// And is exposed to the public internet!!
+// Currently very basic admin router with a single secret authentication
+// TODO: Add more robust admin authentication
+
+adminRouter.use(adminController.verifyAdminSecret);
 
 adminRouter.post(
   "/wallet/sign",
