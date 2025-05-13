@@ -37,6 +37,7 @@ const walletManager = new WalletManager({
   bitcoinWallet,
   supabase,
   bitcoinMonitor,
+  esplora,
 });
 const authController = new AuthController({ supabase });
 const walletController = new WalletController({ walletManager });

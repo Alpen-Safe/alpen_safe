@@ -6,6 +6,7 @@ import { objectToCamel } from "ts-case-convert";
 import { UTXO } from "./bitcoin/bitcoinWalletModel";
 import { calculateTxFees } from "../../helpers/feeEstimator";
 import { generateInternalTransactionId } from "../../helpers/helpers";
+import Esplora from "../../api/esplora";
 
 // we fix 1 server signer for now
 // Should apply in all cases
@@ -20,18 +21,21 @@ class WalletManager {
   bitcoinWallet: BitcoinWallet;
   chain: Chain;
   bitcoinMonitor: BitcoinMonitor;
+  esplora: Esplora;
 
   constructor(
-    { bitcoinWallet, supabase, bitcoinMonitor }: {
+    { bitcoinWallet, supabase, bitcoinMonitor, esplora }: {
       bitcoinWallet: BitcoinWallet;
       supabase: Supabase;
       bitcoinMonitor: BitcoinMonitor;
+      esplora: Esplora;
     },
   ) {
     this.bitcoinWallet = bitcoinWallet;
     this.supabase = supabase;
     this.bitcoinMonitor = bitcoinMonitor;
     this.chain = "bitcoin";
+    this.esplora = esplora;
   }
 
   async signTransactionWithServer(
@@ -191,6 +195,8 @@ class WalletManager {
       const txid = utxo.utxo.split(":")[0];
       const vout = Number(utxo.utxo.split(":")[1]);
 
+      const rawTx = await this.esplora.getRawTransaction(txid);
+
       // Derive witness script using the bitcoinWallet's deriveWalletFromXpubs method
       const derivedAddressInfo = this.bitcoinWallet.deriveWalletFromXpubs(
         walletData.account_id,
@@ -214,6 +220,7 @@ class WalletManager {
         address: utxo.address,
         witnessScript: derivedAddressInfo.witnessScript,
         bip32Derivations: derivedAddressInfo.bip32Derivations,
+        nonWitnessUtxo: rawTx ? Buffer.from(rawTx, 'hex') : undefined,
       });
 
       inputValue += utxo.value;

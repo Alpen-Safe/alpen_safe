@@ -26,6 +26,7 @@ function setupWalletManager() {
     bitcoinWallet,
     supabase,
     bitcoinMonitor,
+    esplora,
   });
 
   return walletManager;
@@ -44,11 +45,14 @@ describe("WalletManager", () => {
     let getWalletUtxosStub: sinon.SinonStub;
     let getWalletDataStub: sinon.SinonStub;
     let handoutAddressesStub: sinon.SinonStub;
+    let getRawTransactionStub: sinon.SinonStub;
 
     beforeEach(() => {
       getWalletUtxosStub = sinon.stub(walletManager.supabase, "getWalletUtxos");
       getWalletDataStub = sinon.stub(walletManager.supabase, "getWalletData");
       handoutAddressesStub = sinon.stub(walletManager, "handoutAddresses");
+      getRawTransactionStub = sinon.stub(walletManager.esplora, "getRawTransaction");
+      // getRawTransactionStub.resolves(undefined);
 
       getWalletUtxosStub.resolves([
         {
@@ -202,6 +206,7 @@ describe("WalletManager", () => {
         { address: "tb1qe79uqluw0ctp4tnjvxltydea9mwmt0hq5yxuqg", value: 1000 },
       ];
       const feePerByte = 10;
+      
 
       
       const res = await walletManager.buildWalletSpendPsbt(walletId, receivers, feePerByte);

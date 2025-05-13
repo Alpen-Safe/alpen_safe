@@ -41,6 +41,7 @@ export interface UTXO {
   address: string;
   witnessScript: Buffer;
   bip32Derivations: Bip32Derivation[];
+  nonWitnessUtxo?: Buffer;
 }
 
 export interface TxOutput {
@@ -378,6 +379,7 @@ class BitcoinWallet {
 
     // Add all inputs
     for (const input of inputs) {
+
       psbt.addInput({
         hash: input.txid,
         index: input.vout,
@@ -385,6 +387,7 @@ class BitcoinWallet {
           script: bitcoin.address.toOutputScript(input.address, this.network),
           value: input.value,
         },
+        ...(input.nonWitnessUtxo ? { nonWitnessUtxo: input.nonWitnessUtxo } : {}),
         witnessScript: input.witnessScript,
         bip32Derivation: input.bip32Derivations,
       });
