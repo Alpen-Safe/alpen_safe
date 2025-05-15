@@ -11,6 +11,13 @@ const ECPair = ECPairFactory(ecc);
 
 const MAX_ACCOUNT_INDEX = 2147483647; // 2^31 - 1
 
+// Define our own Bip32Derivation interface instead of importing from bip174
+interface Bip32Derivation {
+  masterFingerprint: Buffer;
+  pubkey: Buffer;
+  path: string;
+}
+
 interface KeyPair {
   publicKey: Buffer;
   privateKey: Buffer;
@@ -24,6 +31,7 @@ interface WalletInfo {
   serverPublicKey: string;
   addressIndex: number;
   change: boolean;
+  bip32Derivations: Bip32Derivation[];
 }
 
 export interface UTXO {
@@ -32,6 +40,8 @@ export interface UTXO {
   value: number;
   address: string;
   witnessScript: Buffer;
+  bip32Derivations: Bip32Derivation[];
+  nonWitnessUtxo?: Buffer;
 }
 
 export interface TxOutput {
@@ -168,13 +178,15 @@ class BitcoinWallet {
   ) {
     const { xpub, path } = this.getServerAccountXpub(accountId);
 
-    // Format: wsh(multi(2,xpub1/0/*,xpub2/0/*,...))
+    // https://blog.casa.io/introducing-wallet-descriptors/
+    // Format: wsh(multi(2,xpub1/<0;1>/*,xpub2/<0;1>/*,...))
+    // TODO: Add the []
     const xpubPaths = [
-      `${xpub}/0/*`, // Receive path
-      ...userXpubs.map((xpub) => `${xpub}/0/*`),
+      `${xpub}/<0;1>/*`, // Receive path
+      ...userXpubs.map((xpub) => `${xpub}/<0;1>/*`),
     ].join(",");
 
-    const walletDescriptor = `wsh(multi(${m},${xpubPaths}))`;
+    const walletDescriptor = `wsh(sortedmulti(${m},${xpubPaths}))`;
 
     return {
       walletDescriptor,
@@ -193,10 +205,33 @@ class BitcoinWallet {
     userXpubs: string[],
     addressIndex: number,
     change: boolean = false,
+    userMasterFingerprints: string[] = [],
+    userAccountNodeDerivationPaths: string[] = [],
   ): WalletInfo {
     if (!this.validateAccountIndex(addressIndex)) {
       throw new Error(
         `Address index must be between 0 and ${MAX_ACCOUNT_INDEX}`,
+      );
+    }
+
+    // Create server fingerprint with zeros
+    const serverMasterFingerprint = Buffer.from('00000000', 'hex');
+
+    // Convert user fingerprints from hex strings to Buffers
+    // If no fingerprints provided or array is empty, use zero fingerprints for all users
+    let userFingerprints: Buffer[];
+    if (userMasterFingerprints.length === 0) {
+      // Create an array of zero fingerprints matching the number of xpubs
+      userFingerprints = Array(userXpubs.length).fill(Buffer.from('00000000', 'hex'));
+    } else {
+      // Validate that we have the right number of fingerprints
+      if (userMasterFingerprints.length !== userXpubs.length) {
+        throw new Error("Number of user fingerprints must match number of xpubs");
+      }
+      
+      // Convert provided fingerprints from hex strings to Buffers
+      userFingerprints = userMasterFingerprints.map(fingerprint => 
+        Buffer.from(fingerprint === null ? '00000000' : fingerprint, 'hex')
       );
     }
 
@@ -207,35 +242,59 @@ class BitcoinWallet {
       change,
     );
 
+
+    // do not give out the full server derivation path
+    // we do not want to give out the account number and other
+    // sensitive information
+    const changeIndex = change ? 1 : 0;
+    const serverDerivationPath = `m/${changeIndex}/${addressIndex}`;
+
     // 2. Derive corresponding keys from user xpubs
     const userKeys: Buffer[] = [];
-    for (const userXpub of userXpubs) {
+    const userDerivationPaths: string[] = [];
+    
+    for (let index = 0; index < userXpubs.length; index++) {
       try {
         // Import the xpub
-        const userAccountNode = bip32.fromBase58(userXpub, this.network);
+        const userAccountNode = bip32.fromBase58(userXpubs[index], this.network);
 
         // Derive the same path as server (change/index)
-        const changeIndex = change ? 1 : 0;
         const userKey = userAccountNode
           .derive(changeIndex)
           .derive(addressIndex)
           .publicKey;
 
         userKeys.push(Buffer.from(userKey));
+        
+
+        if (userAccountNodeDerivationPaths[index]) {
+          // Store the full derivation path
+          userDerivationPaths.push(`${userAccountNodeDerivationPaths[index]}/${changeIndex}/${addressIndex}`);
+        } else {
+          // Store the derivation path (this is the path AFTER the xpub level)
+          userDerivationPaths.push(`${changeIndex}/${addressIndex}`);
+        }
       } catch (error: any) {
         throw new Error(`Failed to derive key from xpub: ${error.message}`);
       }
     }
 
-    // 3. Combine and sort all public keys (server + users)
-    const pubKeys = [serverKeyPair.publicKey, ...userKeys].sort((a, b) =>
-      Buffer.compare(a, b)
+    // 3. Combine all public keys (server + users) and remember original order
+    const allPubKeys = [serverKeyPair.publicKey, ...userKeys];
+    const allFingerprints = [serverMasterFingerprint, ...userFingerprints];
+    const allPaths = [serverDerivationPath, ...userDerivationPaths];
+    
+    // Get sorted pubkeys for the actual multisig script
+    const pubKeyIndices = allPubKeys.map((_, index) => index);
+    const sortedPubKeyIndices = [...pubKeyIndices].sort((a, b) => 
+      Buffer.compare(allPubKeys[a], allPubKeys[b])
     );
+    const sortedPubKeys = sortedPubKeyIndices.map(idx => allPubKeys[idx]);
 
     // 4. Create P2WSH multisig address
     const p2ms = bitcoin.payments.p2ms({
       m,
-      pubkeys: pubKeys,
+      pubkeys: sortedPubKeys,
       network: this.network,
     });
 
@@ -252,6 +311,13 @@ class BitcoinWallet {
       throw new Error("Failed to create P2WSH address");
     }
 
+    // 5. Create BIP32 derivation array needed for PSBT
+    const bip32Derivations: Bip32Derivation[] = allPubKeys.map((pubkey, index) => ({
+      pubkey: pubkey,
+      masterFingerprint: allFingerprints[index],
+      path: allPaths[index],
+    }));
+
     return {
       address: p2wsh.address,
       witnessScript: p2ms.output,
@@ -259,6 +325,7 @@ class BitcoinWallet {
       serverPublicKey: serverKeyPair.publicKey.toString("hex"),
       addressIndex: addressIndex,
       change: change,
+      bip32Derivations: bip32Derivations,
     };
   }
 
@@ -297,11 +364,11 @@ class BitcoinWallet {
    * @returns The unsigned transaction as base64-encoded PSBT
    */
   public createUnsignedTransaction(
-    utxos: UTXO[],
+    inputs: UTXO[],
     outputs: TxOutput[],
   ): UnsignedTx {
-    if (utxos.length === 0) {
-      throw new Error("No UTXOs provided");
+    if (inputs.length === 0) {
+      throw new Error("No inputs provided");
     }
     if (outputs.length === 0) {
       throw new Error("No outputs provided");
@@ -311,15 +378,18 @@ class BitcoinWallet {
     const psbt = new bitcoin.Psbt({ network: this.network });
 
     // Add all inputs
-    for (const utxo of utxos) {
+    for (const input of inputs) {
+
       psbt.addInput({
-        hash: utxo.txid,
-        index: utxo.vout,
+        hash: input.txid,
+        index: input.vout,
         witnessUtxo: {
-          script: bitcoin.address.toOutputScript(utxo.address, this.network),
-          value: utxo.value,
+          script: bitcoin.address.toOutputScript(input.address, this.network),
+          value: input.value,
         },
-        witnessScript: utxo.witnessScript,
+        ...(input.nonWitnessUtxo ? { nonWitnessUtxo: input.nonWitnessUtxo } : {}),
+        witnessScript: input.witnessScript,
+        bip32Derivation: input.bip32Derivations,
       });
     }
 

@@ -206,7 +206,7 @@ describe("BitcoinWallet", () => {
         .createWalletDescriptor(0, 2, [userXpub]);
 
       const { xpub } = wallet.getServerAccountXpub(0);
-      const expectedFormat = `wsh(multi(2,${xpub}/0/*,${userXpub}/0/*))`;
+      const expectedFormat = `wsh(sortedmulti(2,${xpub}/<0;1>/*,${userXpub}/<0;1>/*))`;
 
       expect(walletDescriptor).to.equal(expectedFormat);
       expect(serverDerivationPath).to.equal("m/48'/1'/0'/2'");
@@ -230,7 +230,7 @@ describe("BitcoinWallet", () => {
       const commas = walletDescriptor.match(/,/g) || [];
       expect(commas.length - 1).to.equal(userXpubs.length);
       expect(walletDescriptor).to.equal(
-        "wsh(multi(2,tpubDFH9dgzveyD8zTbPUFuLrGmCydNvxehyNdUXKJAQN8x4aZ4j6UZqGfnqFrD4NqyaTVGKbvEW54tsvPTK2UoSbCC1PJY8iCNiwTL3RWZEheQ/0/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/0/*))",
+        "wsh(sortedmulti(2,tpubDFH9dgzveyD8zTbPUFuLrGmCydNvxehyNdUXKJAQN8x4aZ4j6UZqGfnqFrD4NqyaTVGKbvEW54tsvPTK2UoSbCC1PJY8iCNiwTL3RWZEheQ/<0;1>/*,tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/<0;1>/*,tpubDCcsjmHgBmMhNvPnnBYb71dNo2PEHipgTxHBDtZxPGA8bEofZjQrHptxftbpHDCNAMHNdMSFxFd9aYAZpQKwofLr5kf2HoQM6hSzYBRgM1R/<0;1>/*))",
       );
     });
   });
@@ -384,47 +384,61 @@ describe("BitcoinWallet", () => {
 
   // Test suite for createUnsignedTransaction
   describe("createUnsignedTransaction", () => {
+    let wallet: BitcoinWallet;
+
+    const pubkey1 = Buffer.from("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", "hex");
+    const pubkey2 = Buffer.from("02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5", "hex");
+    const pubkey3 = Buffer.from("02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9", "hex");
+
+    const witnessScript = bitcoin.script.compile([
+      2, // m value (2-of-n)
+      pubkey1,
+      pubkey2,
+      pubkey3,
+      3, // n value (3 total keys)
+      bitcoin.script.OPS.OP_CHECKMULTISIG,
+    ]);
+
+    const bip32Derivations = [
+      {
+        path: "0/0",
+        pubkey: pubkey1,
+        masterFingerprint: Buffer.from("00000000", "hex"),
+      },
+      {
+        path: "0/0",
+        pubkey: pubkey2,
+        masterFingerprint: Buffer.from("00000000", "hex"),
+      },
+      {
+        path: "0/0",
+        pubkey: pubkey3,
+        masterFingerprint: Buffer.from("00000000", "hex"),
+      },
+    ];
+
+    const utxo = {
+      txid: "0000000000000000000000000000000000000000000000000000000000000001",
+      vout: 0,
+      value: 1000000, // 0.01 BTC
+      address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
+      witnessScript,
+      bip32Derivations,
+    };
+
+    const output = {
+      address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      value: 500000, // 0.005 BTC
+    };
+
+    const utxos: UTXO[] = [utxo];
+    const outputs: TxOutput[] = [output];
+
+    beforeEach(() => {
+      wallet = setupWallet();
+    });
+
     it("should create valid transaction with sufficient funds", () => {
-      const wallet = setupWallet();
-
-      // Create mock witnessScript
-      const witnessScript = bitcoin.script.compile([
-        2, // m value (2-of-n)
-        Buffer.from(
-          "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-          "hex",
-        ), // dummy pubkey 1
-        Buffer.from(
-          "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
-          "hex",
-        ), // dummy pubkey 2
-        Buffer.from(
-          "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
-          "hex",
-        ), // dummy pubkey 3
-        3, // n value (3 total keys)
-        bitcoin.script.OPS.OP_CHECKMULTISIG,
-      ]);
-
-      // Mock UTXOs
-      const utxos: UTXO[] = [
-        {
-          txid: "0000000000000000000000000000000000000000000000000000000000000001",
-          vout: 0,
-          value: 1000000, // 0.01 BTC
-          address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
-          witnessScript,
-        },
-      ];
-
-      // Mock outputs
-      const outputs: TxOutput[] = [
-        {
-          address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
-          value: 500000, // 0.005 BTC
-        },
-      ];
-
       // Create transaction
       const unsignedTx = wallet.createUnsignedTransaction(utxos, outputs);
 
@@ -434,28 +448,13 @@ describe("BitcoinWallet", () => {
     });
 
     it("should throw error with no UTXOs", () => {
-      const wallet = setupWallet();
-
-      // Empty UTXOs array
-      const utxos: UTXO[] = [];
-
-      // Mock outputs
-      const outputs: TxOutput[] = [
-        {
-          address: "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
-          value: 5000,
-        },
-      ];
-
       // Should throw error for no UTXOs
-      expect(() => wallet.createUnsignedTransaction(utxos, outputs)).to.throw(
-        "No UTXOs provided",
+      expect(() => wallet.createUnsignedTransaction([], outputs)).to.throw(
+        "No inputs provided",
       );
     });
 
     it("should throw error with no outputs", () => {
-      const wallet = setupWallet();
-
       // Create mock witnessScript
       const witnessScript = bitcoin.script.compile([
         2, // m value
@@ -470,17 +469,6 @@ describe("BitcoinWallet", () => {
         2, // n value
         bitcoin.script.OPS.OP_CHECKMULTISIG,
       ]);
-
-      // Mock UTXOs
-      const utxos: UTXO[] = [
-        {
-          txid: "0000000000000000000000000000000000000000000000000000000000000001",
-          vout: 0,
-          value: 100000,
-          address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
-          witnessScript,
-        },
-      ];
 
       // Empty outputs array
       const outputs: TxOutput[] = [];
@@ -492,38 +480,16 @@ describe("BitcoinWallet", () => {
     });
 
     it("should create transaction with multiple inputs and outputs", () => {
-      const wallet = setupWallet();
-
-      // Create mock witnessScript
-      const witnessScript = bitcoin.script.compile([
-        2, // m value
-        Buffer.from(
-          "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-          "hex",
-        ),
-        Buffer.from(
-          "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
-          "hex",
-        ),
-        2, // n value
-        bitcoin.script.OPS.OP_CHECKMULTISIG,
-      ]);
-
       // Mock multiple UTXOs
-      const utxos: UTXO[] = [
-        {
-          txid: "0000000000000000000000000000000000000000000000000000000000000001",
-          vout: 0,
-          value: 500000,
-          address: "tb1qcmurq55dzwvmwjljkhs79xawaw4gz35mtw9pet",
-          witnessScript,
-        },
+      const utxosNew: UTXO[] = [
+        utxo,
         {
           txid: "0000000000000000000000000000000000000000000000000000000000000002",
           vout: 1,
           value: 300000,
           address: "tb1qsh3y9q3kw2vz45rmw9l5hnswy96qnghmktk6dk",
           witnessScript,
+          bip32Derivations,
         },
       ];
 
@@ -557,15 +523,17 @@ describe("BitcoinWallet", () => {
         "tpubDDpybz5Toi7KGYgyZXtsjxWFBgjVjFrrNeNPuMALvDQLAexWkz6UV8gQjQmDrngmkxLpm6tDWejubcFNQMuVpeCuxJD1ALphBM53CLqfAUf",
       ];
       const m = 2;
+      const userMasterFingerprints = [ '00000000', '00000000' ];
 
       const wallet = setupWallet();
-      const { address, witnessScript, serverKeyDerivationPath } = wallet
+      const { address, witnessScript, bip32Derivations } = wallet
         .deriveWalletFromXpubs(
           accountIndex,
           m,
           userXpubs,
           0,
           false,
+          userMasterFingerprints,
         );
 
       // Mock UTXOs
@@ -576,6 +544,7 @@ describe("BitcoinWallet", () => {
           vout: 0,
           value: 1000000, // 0.01 BTC
           witnessScript,
+          bip32Derivations,
         },
       ];
 

@@ -5,10 +5,23 @@ import WalletManager from "../model/wallet/walletManager";
 
 class AdminController extends BaseController {
   private walletManager: WalletManager;
-  constructor({ walletManager }: { walletManager: WalletManager }) {
+  private adminSecret: string;
+
+  constructor({ walletManager, adminSecret }: { walletManager: WalletManager, adminSecret: string }) {
     super();
     this.walletManager = walletManager;
+    this.adminSecret = adminSecret;
   }
+
+  verifyAdminSecret = (req: Request, res: Response, next: NextFunction) => {
+    const secretHeader = req.headers['x-admin-secret'];
+    
+    if (!secretHeader || secretHeader !== this.adminSecret) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    next();
+  };
 
   signTransactionWithServerValidator = [
     body("walletId").exists().isString(),

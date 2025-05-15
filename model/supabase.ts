@@ -2,6 +2,7 @@ import { Database, Json } from "../database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { UserPublicKey } from "./types";
 import { objectToSnake } from "ts-case-convert";
+import { PartialSignature } from "./types";
 
 export interface CreateWalletParams {
   userId: string;
@@ -22,6 +23,7 @@ export interface Address {
   addressIndex: number;
   change: boolean;
 }
+
 
 class Supabase {
   supabase: SupabaseClient<Database>;
@@ -263,15 +265,48 @@ class Supabase {
     }
   }
 
-  submitSignedPsbt = async (unsignedTransactionId: string, psbtBase64: string, publicKey: string) => {
-    const { error, data } = await this.supabase.rpc("submit_signed_psbt", {
-      _unsigned_transaction_id: unsignedTransactionId,
-      _psbt_base64: psbtBase64,
-      _public_key: publicKey,
+  addLedgerPolicy = async (walletId: string, publicKey: string, policyIdHex: string, policyHmacHex: string) => {
+    const { error, data } = await this.supabase.rpc("create_ledger_policy", {
+      _wallet_id: walletId,
+      _xpub: publicKey,
+      _policy_id_hex: policyIdHex,
+      _policy_hmac_hex: policyHmacHex,
+    });
+
+    if (error) {
+      console.error("error addLedgerPolicy", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  getLedgerPolicy = async (walletId: string, xpub: string) => {
+    const { data, error } = await this.supabase
+      .from("ledger_policies")
+      .select("wallet_id, public_keys (id, xpub )")
+      .eq("wallet_id", walletId)
+      .eq("public_keys.xpub", xpub);
+
+    if (error) {
+      console.error("error getLedgerPolicies", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  submitPartialSignatures = async (unsignedTransactionId: string, masterFingerprint: string, partialSignatures: PartialSignature[]) => {
+    const convertedPartialSignatures = objectToSnake(partialSignatures);
+
+    const { error, data } = await this.supabase.rpc("submit_partial_signatures", {
+      _unsigned_tx_id: unsignedTransactionId,
+      _master_fingerprint: masterFingerprint,
+      _partial_signatures: convertedPartialSignatures,
     }).single();
 
     if (error) {
-      console.error("error submitSignedPsbt", error.message);
+      console.error("error submitPartialSignatures", error.message);
       throw new Error(error.message);
     }
 

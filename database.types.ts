@@ -82,6 +82,55 @@ export type Database = {
           },
         ]
       }
+      ledger_policies: {
+        Row: {
+          created_at: string | null
+          policy_hmac_hex: string
+          policy_id_hex: string
+          public_key_id: number
+          updated_at: string | null
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          policy_hmac_hex: string
+          policy_id_hex: string
+          public_key_id: number
+          updated_at?: string | null
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string | null
+          policy_hmac_hex?: string
+          policy_id_hex?: string
+          public_key_id?: number
+          updated_at?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_policies_public_key_id_fkey"
+            columns: ["public_key_id"]
+            isOneToOne: false
+            referencedRelation: "public_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_policies_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "btc_wallet_balance"
+            referencedColumns: ["wallet_id"]
+          },
+          {
+            foreignKeyName: "ledger_policies_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "multi_sig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       multi_sig_wallets: {
         Row: {
           chain: Database["public"]["Enums"]["supported_chains"]
@@ -118,41 +167,47 @@ export type Database = {
         }
         Relationships: []
       }
-      psbts: {
+      partial_signatures: {
         Row: {
           created_at: string
-          id: number
-          psbt_base64: string
-          public_key_id: number | null
-          unsigned_transaction_id: string
+          input_index: number
+          pubkey: string
+          signature: string
+          tapleaf_hash: string | null
+          unsigned_tx_id: string
+          xpub_id: number
         }
         Insert: {
           created_at?: string
-          id?: number
-          psbt_base64: string
-          public_key_id?: number | null
-          unsigned_transaction_id: string
+          input_index: number
+          pubkey: string
+          signature: string
+          tapleaf_hash?: string | null
+          unsigned_tx_id: string
+          xpub_id: number
         }
         Update: {
           created_at?: string
-          id?: number
-          psbt_base64?: string
-          public_key_id?: number | null
-          unsigned_transaction_id?: string
+          input_index?: number
+          pubkey?: string
+          signature?: string
+          tapleaf_hash?: string | null
+          unsigned_tx_id?: string
+          xpub_id?: number
         }
         Relationships: [
           {
-            foreignKeyName: "psbts_public_key_id_fkey"
-            columns: ["public_key_id"]
+            foreignKeyName: "partial_signatures_unsigned_tx_id_fkey"
+            columns: ["unsigned_tx_id"]
             isOneToOne: false
-            referencedRelation: "public_keys"
+            referencedRelation: "unsigned_transactions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "psbts_unsigned_transaction_id_fkey"
-            columns: ["unsigned_transaction_id"]
+            foreignKeyName: "partial_signatures_xpub_id_fkey"
+            columns: ["xpub_id"]
             isOneToOne: false
-            referencedRelation: "unsigned_transactions"
+            referencedRelation: "public_keys"
             referencedColumns: ["id"]
           },
         ]
@@ -164,6 +219,7 @@ export type Database = {
           device: string
           id: number
           label: string | null
+          master_fingerprint: string | null
           user_id: string
           xpub: string
         }
@@ -173,6 +229,7 @@ export type Database = {
           device: string
           id?: number
           label?: string | null
+          master_fingerprint?: string | null
           user_id: string
           xpub: string
         }
@@ -182,6 +239,7 @@ export type Database = {
           device?: string
           id?: number
           label?: string | null
+          master_fingerprint?: string | null
           user_id?: string
           xpub?: string
         }
@@ -356,17 +414,17 @@ export type Database = {
         Row: {
           unsigned_transaction_id: string
           utxo_id: number
-          vin: number | null
+          vin: number
         }
         Insert: {
           unsigned_transaction_id: string
           utxo_id: number
-          vin?: number | null
+          vin: number
         }
         Update: {
           unsigned_transaction_id?: string
           utxo_id?: number
-          vin?: number | null
+          vin?: number
         }
         Relationships: [
           {
@@ -387,22 +445,25 @@ export type Database = {
       }
       unsigned_transaction_outputs: {
         Row: {
-          amount: number | null
-          recipient_address_id: number | null
-          unsigned_transaction_id: string | null
-          vout: number | null
+          amount: number
+          is_change: boolean
+          recipient_address_id: number
+          unsigned_transaction_id: string
+          vout: number
         }
         Insert: {
-          amount?: number | null
-          recipient_address_id?: number | null
-          unsigned_transaction_id?: string | null
-          vout?: number | null
+          amount: number
+          is_change?: boolean
+          recipient_address_id: number
+          unsigned_transaction_id: string
+          vout: number
         }
         Update: {
-          amount?: number | null
-          recipient_address_id?: number | null
-          unsigned_transaction_id?: string | null
-          vout?: number | null
+          amount?: number
+          is_change?: boolean
+          recipient_address_id?: number
+          unsigned_transaction_id?: string
+          vout?: number
         }
         Relationships: [
           {
@@ -432,6 +493,7 @@ export type Database = {
           is_cancelled: boolean
           is_complete: boolean
           is_signing: boolean
+          psbt_base64: string
           signatures_count: number
           total_spent: number
           wallet_id: string
@@ -446,6 +508,7 @@ export type Database = {
           is_cancelled?: boolean
           is_complete?: boolean
           is_signing?: boolean
+          psbt_base64: string
           signatures_count?: number
           total_spent?: number
           wallet_id: string
@@ -460,6 +523,7 @@ export type Database = {
           is_cancelled?: boolean
           is_complete?: boolean
           is_signing?: boolean
+          psbt_base64?: string
           signatures_count?: number
           total_spent?: number
           wallet_id?: string
@@ -640,49 +704,40 @@ export type Database = {
         Args: { _wallet_id: string; _addresses: Json }
         Returns: undefined
       }
+      create_ledger_policy: {
+        Args: {
+          _wallet_id: string
+          _xpub: string
+          _policy_id_hex: string
+          _policy_hmac_hex: string
+        }
+        Returns: undefined
+      }
       create_wallet: {
-        Args:
-          | {
-              _user_id: string
-              _wallet_name: string
-              _m: number
-              _n: number
-              _chain: Database["public"]["Enums"]["supported_chains"]
-              _wallet_descriptor: string
-              _server_signers: number
-              _server_signer_id: number
-              _server_signer_derivation_path: string
-              _server_xpub: string
-              _user_public_keys: Json[]
-            }
-          | {
-              _user_id: string
-              _wallet_name: string
-              _m: number
-              _n: number
-              _chain: Database["public"]["Enums"]["supported_chains"]
-              _wallet_descriptor: string
-              _server_signers: number
-              _server_signer_id: number
-              _server_signer_derivation_path: string
-              _user_public_keys: Json[]
-            }
+        Args: {
+          _user_id: string
+          _wallet_name: string
+          _m: number
+          _n: number
+          _chain: Database["public"]["Enums"]["supported_chains"]
+          _wallet_descriptor: string
+          _server_signers: number
+          _server_signer_id: number
+          _server_signer_derivation_path: string
+          _server_xpub: string
+          _user_public_keys: Json[]
+        }
         Returns: string
       }
       get_or_create_public_key: {
-        Args:
-          | {
-              _user_id: string
-              _xpub: string
-              _account_node_derivation_path: string
-            }
-          | {
-              _user_id: string
-              _xpub: string
-              _account_node_derivation_path: string
-              _device: string
-              _label?: string
-            }
+        Args: {
+          _user_id: string
+          _xpub: string
+          _account_node_derivation_path: string
+          _device: string
+          _master_fingerprint?: string
+          _label?: string
+        }
         Returns: number
       }
       get_or_create_recipient_address: {
@@ -707,6 +762,8 @@ export type Database = {
           account_id: number
           m: number
           user_xpubs: string[]
+          user_master_fingerprints: string[]
+          user_derivation_paths: string[]
         }[]
       }
       get_wallet_utxos: {
@@ -754,15 +811,15 @@ export type Database = {
         }
         Returns: undefined
       }
-      submit_signed_psbt: {
+      submit_partial_signatures: {
         Args: {
-          _unsigned_transaction_id: string
-          _psbt_base64: string
-          _public_key: string
+          _unsigned_tx_id: string
+          _master_fingerprint: string
+          _partial_signatures: Json[]
         }
         Returns: {
-          is_complete: boolean
           signatures_count: number
+          is_complete: boolean
         }[]
       }
       user_owns_wallet: {

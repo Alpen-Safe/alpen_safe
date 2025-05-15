@@ -6,6 +6,8 @@ import { objectToCamel } from "ts-case-convert";
 import { UTXO } from "./bitcoin/bitcoinWalletModel";
 import { calculateTxFees } from "../../helpers/feeEstimator";
 import { generateInternalTransactionId } from "../../helpers/helpers";
+import { PartialSignature } from "../types";
+import Esplora from "../../api/esplora";
 
 // we fix 1 server signer for now
 // Should apply in all cases
@@ -20,18 +22,21 @@ class WalletManager {
   bitcoinWallet: BitcoinWallet;
   chain: Chain;
   bitcoinMonitor: BitcoinMonitor;
+  esplora: Esplora;
 
   constructor(
-    { bitcoinWallet, supabase, bitcoinMonitor }: {
+    { bitcoinWallet, supabase, bitcoinMonitor, esplora }: {
       bitcoinWallet: BitcoinWallet;
       supabase: Supabase;
       bitcoinMonitor: BitcoinMonitor;
+      esplora: Esplora;
     },
   ) {
     this.bitcoinWallet = bitcoinWallet;
     this.supabase = supabase;
     this.bitcoinMonitor = bitcoinMonitor;
     this.chain = "bitcoin";
+    this.esplora = esplora;
   }
 
   async signTransactionWithServer(
@@ -191,13 +196,17 @@ class WalletManager {
       const txid = utxo.utxo.split(":")[0];
       const vout = Number(utxo.utxo.split(":")[1]);
 
+      const rawTx = await this.esplora.getRawTransaction(txid);
+
       // Derive witness script using the bitcoinWallet's deriveWalletFromXpubs method
       const derivedAddressInfo = this.bitcoinWallet.deriveWalletFromXpubs(
         walletData.account_id,
         walletData.m,
         walletData.user_xpubs,
         utxo.address_index,
-        utxo.change
+        utxo.change,
+        walletData.user_master_fingerprints,
+        walletData.user_derivation_paths
       );
       
       // Verify the derived address matches the UTXO address
@@ -211,6 +220,8 @@ class WalletManager {
         value: utxo.value,
         address: utxo.address,
         witnessScript: derivedAddressInfo.witnessScript,
+        bip32Derivations: derivedAddressInfo.bip32Derivations,
+        nonWitnessUtxo: rawTx ? Buffer.from(rawTx, 'hex') : undefined,
       });
 
       inputValue += utxo.value;
@@ -286,10 +297,17 @@ class WalletManager {
 
     const unsignedTransactionId = generateInternalTransactionId();
 
+    const outputs = receivers.map((receiver) => ({
+      address: receiver.address,
+      value: receiver.value,
+      label: receiver.label,
+      is_change: false,
+    }));
+
     // I am passing the receivers without the change address for now
     // as this will be used mostly for UI purposes
     // consider passing the change address as well if we want to have better tracking in the db
-    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, receivers, feePerByte, initiatedBy, totalSpent, fee);
+    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte, initiatedBy, totalSpent, fee);
 
     return {
       internalTransactionId: unsignedTransactionId,
@@ -297,14 +315,29 @@ class WalletManager {
     };
   }
 
-  async submitSignedPsbt(unsignedTransactionId: string, psbtBase64: string, userId: string) {
-    // TODO: Verify that the signature is valid
-    // TODO: Verify that the PSBT is valid
+  async addLedgerPolicy(walletId: string, publicKey: string, policyIdHex: string, policyHmacHex: string) {
+    const existingPolicy = await this.supabase.getLedgerPolicy(walletId, publicKey);
 
-    const res = await this.supabase.submitSignedPsbt(unsignedTransactionId, psbtBase64, userId);
+    if (existingPolicy) {
+      return {
+        error: "Policy already exists for this wallet and public key",
+      };
+    }
 
-    return objectToCamel(res);
+    await this.supabase.addLedgerPolicy(walletId, publicKey, policyIdHex, policyHmacHex);
+
+    return {
+      success: true,
+    };
+  }
+
+  async submitPartialSignatures(unsignedTransactionId: string, masterFingerprint: string, partialSignatures: PartialSignature[]) {
+    const { signatures_count, is_complete } = await this.supabase.submitPartialSignatures(unsignedTransactionId, masterFingerprint, partialSignatures);
+
+    return {
+      signaturesCount: signatures_count,
+      isComplete: is_complete,
+    };
   }
 }
-
 export default WalletManager;
