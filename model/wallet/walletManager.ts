@@ -297,10 +297,17 @@ class WalletManager {
 
     const unsignedTransactionId = generateInternalTransactionId();
 
+    const outputs = receivers.map((receiver) => ({
+      address: receiver.address,
+      value: receiver.value,
+      label: receiver.label,
+      is_change: false,
+    }));
+
     // I am passing the receivers without the change address for now
     // as this will be used mostly for UI purposes
     // consider passing the change address as well if we want to have better tracking in the db
-    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, receivers, feePerByte, initiatedBy, totalSpent, fee);
+    await this.supabase.initiateSpendTransaction(unsignedTransactionId, walletId, psbtBase64, inputs, outputs, feePerByte, initiatedBy, totalSpent, fee);
 
     return {
       internalTransactionId: unsignedTransactionId,

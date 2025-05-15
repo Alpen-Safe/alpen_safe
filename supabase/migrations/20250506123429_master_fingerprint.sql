@@ -226,6 +226,7 @@ DECLARE
     _recipient_address_id INTEGER;
     _output_amount INTEGER;
     _output JSONB;
+    _is_change BOOLEAN;
 BEGIN
     -- Update the UTXOs to be reserved
     UPDATE utxos SET reserved = true WHERE utxo = ANY(_inputs);
@@ -246,8 +247,9 @@ BEGIN
         RAISE NOTICE 'Output: %', _output;
         _recipient_address_id := get_or_create_recipient_address(_wallet_id, _output->>'address'::TEXT, _output->>'label'::TEXT);
         _output_amount := (_output->>'value')::INTEGER;
-        INSERT INTO unsigned_transaction_outputs (unsigned_transaction_id, recipient_address_id, amount, vout)
-        VALUES (_unsigned_transaction_id, _recipient_address_id, _output_amount, _output_index);
+        _is_change := (_output->>'is_change')::BOOLEAN;
+        INSERT INTO unsigned_transaction_outputs (unsigned_transaction_id, recipient_address_id, amount, vout, is_change)
+        VALUES (_unsigned_transaction_id, _recipient_address_id, _output_amount, _output_index, _is_change);
         _output_index := _output_index + 1;
     END LOOP;
 END
