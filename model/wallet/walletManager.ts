@@ -6,6 +6,7 @@ import { objectToCamel } from "ts-case-convert";
 import { UTXO } from "./bitcoin/bitcoinWalletModel";
 import { calculateTxFees } from "../../helpers/feeEstimator";
 import { generateInternalTransactionId } from "../../helpers/helpers";
+import { PartialSignature } from "../types";
 import Esplora from "../../api/esplora";
 
 // we fix 1 server signer for now
@@ -322,17 +323,14 @@ class WalletManager {
       success: true,
     };
   }
-  
-  
 
-  async submitSignedPsbt(unsignedTransactionId: string, psbtBase64: string, userId: string) {
-    // TODO: Verify that the signature is valid
-    // TODO: Verify that the PSBT is valid
+  async submitPartialSignatures(unsignedTransactionId: string, masterFingerprint: string, partialSignatures: PartialSignature[]) {
+    const { signatures_count, is_complete } = await this.supabase.submitPartialSignatures(unsignedTransactionId, masterFingerprint, partialSignatures);
 
-    const res = await this.supabase.submitSignedPsbt(unsignedTransactionId, psbtBase64, userId);
-
-    return objectToCamel(res);
+    return {
+      signaturesCount: signatures_count,
+      isComplete: is_complete,
+    };
   }
 }
-
 export default WalletManager;

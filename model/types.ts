@@ -14,3 +14,10 @@ export type Receiver = {
   value: number;
   label?: string;
 };
+
+export interface PartialSignature {
+  inputIndex: number;
+  pubkey: string;
+  signature: string;
+  tapleafHash: string;
+}

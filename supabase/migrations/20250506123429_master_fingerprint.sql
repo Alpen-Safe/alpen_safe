@@ -195,3 +195,167 @@ BEGIN
     RETURN QUERY SELECT _account_id, _m, _user_xpubs, _user_master_fingerprints, _user_derivation_paths;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP TABLE psbts;
+
+ALTER TABLE unsigned_transactions ADD COLUMN psbt_base64 TEXT NOT NULL;
+COMMENT ON COLUMN unsigned_transactions.psbt_base64 IS 'The PSBT base64 for the unsigned transaction';
+
+-- Make all fields in the unsigned_transaction_outputs table NOT NULL
+ALTER TABLE unsigned_transaction_outputs 
+    ALTER COLUMN unsigned_transaction_id SET NOT NULL,
+    ALTER COLUMN recipient_address_id SET NOT NULL,
+    ALTER COLUMN amount SET NOT NULL,
+    ALTER COLUMN vout SET NOT NULL;
+
+ALTER TABLE unsigned_transaction_outputs
+    ADD COLUMN is_change BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE unsigned_transaction_inputs
+    ALTER COLUMN vin SET NOT NULL;
+
+DROP FUNCTION IF EXISTS initiate_spend_transaction;
+CREATE OR REPLACE FUNCTION initiate_spend_transaction(_unsigned_transaction_id TEXT, _wallet_id UUID, _psbt_base64 TEXT, _inputs TEXT[], _outputs JSONB[], _fee_per_byte INTEGER, _initiated_by UUID, _total_spent BIGINT, _fee_base_currency_amount BIGINT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _input TEXT;
+    _input_index INTEGER := 0;
+    _output_index INTEGER := 0;
+    _recipient_address_id INTEGER;
+    _output_amount INTEGER;
+    _output JSONB;
+BEGIN
+    -- Update the UTXOs to be reserved
+    UPDATE utxos SET reserved = true WHERE utxo = ANY(_inputs);
+
+    -- Create the unsigned transaction
+    INSERT INTO unsigned_transactions (id, wallet_id, is_complete, is_signing, initiated_by, fee_per_byte, total_spent, fee_base_currency_amount, psbt_base64)
+    VALUES (_unsigned_transaction_id, _wallet_id, false, false, _initiated_by, _fee_per_byte, _total_spent, _fee_base_currency_amount, _psbt_base64);
+
+    -- Insert the inputs into the unsigned transaction
+    FOREACH _input IN ARRAY _inputs LOOP
+        INSERT INTO unsigned_transaction_inputs (utxo_id, unsigned_transaction_id, vin)
+        VALUES ((SELECT id FROM utxos WHERE utxo = _input), _unsigned_transaction_id, _input_index);
+        _input_index := _input_index + 1;
+    END LOOP;
+
+    -- Insert the outputs into the unsigned transaction
+    FOREACH _output IN ARRAY _outputs LOOP
+        RAISE NOTICE 'Output: %', _output;
+        _recipient_address_id := get_or_create_recipient_address(_wallet_id, _output->>'address'::TEXT, _output->>'label'::TEXT);
+        _output_amount := (_output->>'value')::INTEGER;
+        INSERT INTO unsigned_transaction_outputs (unsigned_transaction_id, recipient_address_id, amount, vout)
+        VALUES (_unsigned_transaction_id, _recipient_address_id, _output_amount, _output_index);
+        _output_index := _output_index + 1;
+    END LOOP;
+END
+$$;
+
+
+CREATE TABLE partial_signatures (
+    unsigned_tx_id TEXT NOT NULL REFERENCES unsigned_transactions(id),
+    input_index INTEGER NOT NULL,
+    xpub_id INTEGER NOT NULL REFERENCES public_keys(id),
+    pubkey TEXT NOT NULL,
+    signature TEXT NOT NULL,
+    tapleaf_hash TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (unsigned_tx_id, input_index, xpub_id)
+);
+
+COMMENT ON TABLE partial_signatures IS 'Partial signatures for a PSBT';
+COMMENT ON COLUMN partial_signatures.unsigned_tx_id IS 'The unsigned transaction ID';
+COMMENT ON COLUMN partial_signatures.input_index IS 'The input index';
+COMMENT ON COLUMN partial_signatures.xpub_id IS 'The public key ID';
+COMMENT ON COLUMN partial_signatures.pubkey IS 'The public key for the input';
+COMMENT ON COLUMN partial_signatures.signature IS 'The signature for the input';
+COMMENT ON COLUMN partial_signatures.tapleaf_hash IS 'The tapleaf hash for the input';
+
+DROP FUNCTION IF EXISTS submit_signed_psbt;
+CREATE OR REPLACE FUNCTION submit_partial_signatures(
+    _unsigned_tx_id TEXT,
+    _master_fingerprint TEXT,
+    _partial_signatures JSONB[]
+) RETURNS TABLE (
+    signatures_count INTEGER,
+    is_complete BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _input_index INTEGER;
+    _xpub_id INTEGER;
+    _pubkey TEXT;
+    _signature TEXT;
+    _tapleaf_hash TEXT;
+    _number_of_signatures INTEGER;
+    _number_of_inputs INTEGER;
+    _number_of_signers INTEGER;
+    _total_signatures_count INTEGER;
+    _m INTEGER;
+    _partial_signature JSONB;
+BEGIN
+    -- Check if the unsigned transaction exists
+    IF NOT EXISTS (SELECT 1 FROM unsigned_transactions WHERE id = _unsigned_tx_id) THEN
+        RAISE EXCEPTION 'Unsigned transaction not found';
+    END IF;
+    
+    SELECT id INTO _xpub_id
+    FROM public_keys
+    WHERE master_fingerprint = _master_fingerprint;
+
+    IF _xpub_id IS NULL THEN
+        RAISE EXCEPTION 'Public key not found';
+    END IF;
+
+    _number_of_signatures := jsonb_array_length(_partial_signatures);
+    SELECT COUNT(*) INTO _number_of_inputs
+    FROM unsigned_transaction_inputs
+    WHERE unsigned_transaction_id = _unsigned_tx_id;
+    
+    -- Check if the number of signatures is evenly divisible by the number of inputs
+    IF _number_of_signatures % _number_of_inputs != 0 THEN
+        RAISE EXCEPTION 'Number of signatures (%) must be evenly divisible by number of inputs (%)', _number_of_signatures, _number_of_inputs;
+    END IF;
+    
+    -- how many signers submitted signatures in this call
+    _number_of_signers := _number_of_signatures / _number_of_inputs;
+
+    UPDATE unsigned_transactions
+    SET signatures_count = signatures_count + _number_of_signers
+    WHERE id = _unsigned_tx_id;
+
+    -- if signatures is now equal to the number of signers, we can sign the transaction
+    SELECT signatures_count INTO _total_signatures_count
+    FROM unsigned_transactions
+    WHERE id = _unsigned_tx_id;
+
+    -- get the m for the wallet
+    SELECT m INTO _m
+    FROM multi_sig_wallets
+    WHERE id = (SELECT wallet_id FROM unsigned_transactions WHERE id = _unsigned_tx_id);
+
+    -- if the number of signatures is now greater than or equal to m, we can complete the transaction
+    IF _total_signatures_count >= _m THEN
+        UPDATE unsigned_transactions
+        SET is_complete = true
+        WHERE id = _unsigned_tx_id;
+    END IF;
+
+    -- insert the partial signatures into the database
+    FOREACH _partial_signature IN ARRAY _partial_signatures LOOP
+        _input_index := (_partial_signature->>'input_index')::INTEGER;
+        _signature := _partial_signature->>'signature';
+        _pubkey := _partial_signature->>'pubkey';
+        _tapleaf_hash := _partial_signature->>'tapleaf_hash';
+
+        INSERT INTO partial_signatures (unsigned_tx_id, input_index, xpub_id, pubkey, signature, tapleaf_hash)
+        VALUES (_unsigned_tx_id, _input_index, _xpub_id, _pubkey, _signature, _tapleaf_hash);
+    END LOOP;
+
+    RETURN QUERY SELECT _total_signatures_count, _is_complete FROM unsigned_transactions WHERE id = _unsigned_tx_id;
+END;
+$$;
+

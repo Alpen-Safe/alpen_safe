@@ -144,13 +144,6 @@ SELECT pg_catalog.setval('public.addresses_id_seq', 40, true);
 
 
 --
--- Name: psbts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.psbts_id_seq', 1, false);
-
-
---
 -- Name: public_keys_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
