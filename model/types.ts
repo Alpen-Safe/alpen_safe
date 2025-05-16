@@ -19,5 +19,5 @@ export interface PartialSignature {
   inputIndex: number;
   pubkey: string;
   signature: string;
-  tapleafHash: string;
+  tapleafHash?: string;
 }

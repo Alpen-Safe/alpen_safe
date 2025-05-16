@@ -11,6 +11,17 @@ class WalletController extends BaseController {
     this.walletManager = walletManager;
   }
 
+  userIsAdmin = (req: Request, res: Response) => {
+    const userRole = req.userWalletRole as string;
+
+    // TODO: Add more roles and centralize this logic
+    if (userRole !== "admin") {
+      return res.status(403).json({
+        error: "User is not an admin",
+      });
+    }
+  };
+
   createWalletValidator = [
     body("walletName").exists().isString(),
     body("userXPubs").exists().isArray({ min: 2, max: 2 }).withMessage(
@@ -104,14 +115,11 @@ class WalletController extends BaseController {
   initiateSpendTransaction = (req: Request, res: Response) => {
     const func = () => {
       const walletId = req.walletId as string;
-      const userRole = req.userWalletRole as string;
       const initiatedBy = req.user?.id as string;
 
-      // TODO: Add more roles and centralize this logic
-      if (userRole !== "admin") {
-        return res.status(403).json({
-          error: "User is not an admin",
-        });
+      const error = this.userIsAdmin(req, res);
+      if (error) {
+        return error;
       }
 
       const { receivers, feePerByte } = req.body;
@@ -123,8 +131,8 @@ class WalletController extends BaseController {
   };
 
   addLedgerPolicyValidator = [
-    body("publicKey").exists().isString().withMessage(
-      "publicKey must be a string",
+    body("masterFingerprint").exists().isString().withMessage(
+      "masterFingerprint must be a string",
     ),
     body("policyIdHex").exists().isString().withMessage(
       "policyIdHex must be a string",
@@ -136,24 +144,59 @@ class WalletController extends BaseController {
 
   addLedgerPolicy = (req: Request, res: Response) => {
     const func = () => {
-      const userRole = req.userWalletRole as string;
       const walletId = req.walletId as string;
 
-      // TODO: Add more roles and centralize this logic
-      if (userRole !== "admin") {
-        return res.status(403).json({
-          error: "User is not an admin",
-        });
+      const error = this.userIsAdmin(req, res);
+      if (error) {
+        return error;
       }
 
-      const { publicKey, policyIdHex, policyHmacHex } = req.body;
+      const { masterFingerprint, policyIdHex, policyHmacHex } = req.body;
 
-      return this.walletManager.addLedgerPolicy(walletId, publicKey, policyIdHex, policyHmacHex);
+      return this.walletManager.addLedgerPolicy(walletId, masterFingerprint, policyIdHex, policyHmacHex);
     };
 
     return this.execController(req, res, func);
   };
 
+  submitPartialSignaturesValidator = [
+    body("unsignedTransactionId").exists().isString().withMessage(
+      "unsignedTransactionId must be a string",
+    ),
+    body("masterFingerprint").exists().isString().withMessage(
+      "masterFingerprint must be a string",
+    ),
+    body("partialSignatures").exists().isArray().withMessage(
+      "partialSignatures must be an array",
+    ),
+    body("partialSignatures.*.signature").exists().isString().withMessage(
+      "partialSignatures.*.signature must be a string",
+    ),
+    body("partialSignatures.*.inputIndex").exists().isInt({ min: 0 }).toInt().withMessage(
+      "partialSignatures.*.index must be an integer greater than 0",
+    ),
+    body("partialSignatures.*.pubkey").exists().isString().withMessage(
+      "partialSignatures.*.pubkey must be a string",
+    ),
+    body("partialSignatures.*.tapleafHash").optional({ nullable: true }).isString().withMessage(
+      "partialSignatures.*.tapleafHash must be a string",
+    ),
+  ];
+
+  submitPartialSignatures = (req: Request, res: Response) => {
+    const func = () => {
+      const { unsignedTransactionId, masterFingerprint, partialSignatures } = req.body;
+
+      const error = this.userIsAdmin(req, res);
+      if (error) {
+        return error;
+      }
+  
+      return this.walletManager.submitPartialSignatures(unsignedTransactionId, masterFingerprint, partialSignatures);
+    };
+
+    return this.execController(req, res, func);
+  };
 
 }
 

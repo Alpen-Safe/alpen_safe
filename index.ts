@@ -88,11 +88,19 @@ userWalletRouter.post(
   walletController.initiateSpendTransaction,
 );
 
+userWalletRouter.post(
+  "/tx/submit-partial-signatures",
+  walletController.submitPartialSignaturesValidator,
+  walletController.submitPartialSignatures,
+);
+
 userWalletRouter.put(
   "/wallet/ledger-policy",
   walletController.addLedgerPolicyValidator,
   walletController.addLedgerPolicy,
 );
+
+
 
 // --- Admin ---
 // Currently very basic admin router with a single secret authentication
