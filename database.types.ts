@@ -85,6 +85,7 @@ export type Database = {
       ledger_policies: {
         Row: {
           created_at: string | null
+          id: number
           master_fingerprint: string
           policy_hmac_hex: string
           policy_id_hex: string
@@ -93,6 +94,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          id?: number
           master_fingerprint: string
           policy_hmac_hex: string
           policy_id_hex: string
@@ -101,6 +103,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          id?: number
           master_fingerprint?: string
           policy_hmac_hex?: string
           policy_id_hex?: string

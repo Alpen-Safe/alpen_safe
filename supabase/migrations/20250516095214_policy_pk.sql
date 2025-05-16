@@ -1,0 +1,1 @@
+ALTER TABLE ledger_policies ADD COLUMN id SERIAL PRIMARY KEY;
