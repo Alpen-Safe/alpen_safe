@@ -315,8 +315,8 @@ class WalletManager {
     };
   }
 
-  async addLedgerPolicy(walletId: string, publicKey: string, policyIdHex: string, policyHmacHex: string) {
-    const existingPolicy = await this.supabase.getLedgerPolicy(walletId, publicKey);
+  async addLedgerPolicy(walletId: string, masterFingerprint: string, policyIdHex: string, policyHmacHex: string) {
+    const existingPolicy = await this.supabase.getLedgerPolicy(walletId, masterFingerprint);
 
     if (existingPolicy) {
       return {
@@ -324,7 +324,7 @@ class WalletManager {
       };
     }
 
-    await this.supabase.addLedgerPolicy(walletId, publicKey, policyIdHex, policyHmacHex);
+    await this.supabase.addLedgerPolicy(walletId, masterFingerprint, policyIdHex, policyHmacHex);
 
     return {
       success: true,

@@ -85,36 +85,29 @@ export type Database = {
       ledger_policies: {
         Row: {
           created_at: string | null
+          master_fingerprint: string
           policy_hmac_hex: string
           policy_id_hex: string
-          public_key_id: number
           updated_at: string | null
           wallet_id: string
         }
         Insert: {
           created_at?: string | null
+          master_fingerprint: string
           policy_hmac_hex: string
           policy_id_hex: string
-          public_key_id: number
           updated_at?: string | null
           wallet_id: string
         }
         Update: {
           created_at?: string | null
+          master_fingerprint?: string
           policy_hmac_hex?: string
           policy_id_hex?: string
-          public_key_id?: number
           updated_at?: string | null
           wallet_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "ledger_policies_public_key_id_fkey"
-            columns: ["public_key_id"]
-            isOneToOne: false
-            referencedRelation: "public_keys"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "ledger_policies_wallet_id_fkey"
             columns: ["wallet_id"]
@@ -707,7 +700,7 @@ export type Database = {
       create_ledger_policy: {
         Args: {
           _wallet_id: string
-          _xpub: string
+          _master_fingerprint: string
           _policy_id_hex: string
           _policy_hmac_hex: string
         }
