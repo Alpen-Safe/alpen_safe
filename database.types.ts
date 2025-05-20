@@ -694,6 +694,28 @@ export type Database = {
           },
         ]
       }
+      tx_signers: {
+        Row: {
+          unsigned_tx_id: string | null
+          xpub_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partial_signatures_unsigned_tx_id_fkey"
+            columns: ["unsigned_tx_id"]
+            isOneToOne: false
+            referencedRelation: "unsigned_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partial_signatures_xpub_id_fkey"
+            columns: ["xpub_id"]
+            isOneToOne: false
+            referencedRelation: "public_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       create_addresses: {

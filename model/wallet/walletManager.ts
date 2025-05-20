@@ -318,7 +318,7 @@ class WalletManager {
   async addLedgerPolicy(walletId: string, masterFingerprint: string, policyIdHex: string, policyHmacHex: string) {
     const existingPolicy = await this.supabase.getLedgerPolicy(walletId, masterFingerprint);
 
-    if (existingPolicy) {
+    if (existingPolicy && existingPolicy.length > 0) {
       return {
         error: "Policy already exists for this wallet and public key",
       };

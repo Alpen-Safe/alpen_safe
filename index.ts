@@ -65,11 +65,18 @@ app.get("/", (_: Request, res: Response) => {
   res.send("Hello World");
 });
 
+// --- User ---
+// /user
+
 userRouter.post(
   "/wallet/create/2-of-3",
   walletController.createWalletValidator,
   walletController.create2Of3Wallet,
 );
+
+// --- User Wallet ---
+// /user/wallet/:walletId
+
 
 userWalletRouter.post(
   "/addresses/handout",
@@ -94,8 +101,8 @@ userWalletRouter.post(
   walletController.submitPartialSignatures,
 );
 
-userWalletRouter.put(
-  "/wallet/ledger-policy",
+userWalletRouter.post(
+  "/ledger-policy",
   walletController.addLedgerPolicyValidator,
   walletController.addLedgerPolicy,
 );

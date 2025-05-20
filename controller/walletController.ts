@@ -135,10 +135,10 @@ class WalletController extends BaseController {
       "masterFingerprint must be a string",
     ),
     body("policyId").exists().isString().withMessage(
-      "policyId must be a string",
+      "policyId must be a hex string",
     ),
     body("policyHmac").exists().isString().withMessage(
-      "policyHmac must be a string",
+      "policyHmac must be a hex string",
     ),
   ];
 
