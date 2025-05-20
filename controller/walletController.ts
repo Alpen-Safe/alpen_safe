@@ -134,11 +134,11 @@ class WalletController extends BaseController {
     body("masterFingerprint").exists().isString().withMessage(
       "masterFingerprint must be a string",
     ),
-    body("policyIdHex").exists().isString().withMessage(
-      "policyIdHex must be a string",
+    body("policyId").exists().isString().withMessage(
+      "policyId must be a hex string",
     ),
-    body("policyHmacHex").exists().isString().withMessage(
-      "policyHmacHex must be a string",
+    body("policyHmac").exists().isString().withMessage(
+      "policyHmac must be a hex string",
     ),
   ];
 
@@ -151,9 +151,9 @@ class WalletController extends BaseController {
         return error;
       }
 
-      const { masterFingerprint, policyIdHex, policyHmacHex } = req.body;
+      const { masterFingerprint, policyId, policyHmac } = req.body;
 
-      return this.walletManager.addLedgerPolicy(walletId, masterFingerprint, policyIdHex, policyHmacHex);
+      return this.walletManager.addLedgerPolicy(walletId, masterFingerprint, policyId, policyHmac);
     };
 
     return this.execController(req, res, func);
