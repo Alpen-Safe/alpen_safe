@@ -198,6 +198,29 @@ class WalletController extends BaseController {
     return this.execController(req, res, func);
   };
 
+  finalizeTransactionValidator = [
+    body("unsignedTransactionId").exists().isString().withMessage(
+      "unsignedTransactionId must be a string",
+    ),
+  ];
+
+  finalizeTransaction = (req: Request, res: Response) => {
+    const func = () => {
+      const { unsignedTransactionId } = req.body;
+
+      const error = this.userIsAdmin(req, res);
+      if (error) {
+        return error;
+      }
+
+      return this.walletManager.finalizeTransaction(unsignedTransactionId);
+    };
+
+    return this.execController(req, res, func);
+  };
+  
+  
+
 }
 
 export default WalletController;

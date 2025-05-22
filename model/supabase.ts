@@ -312,5 +312,31 @@ class Supabase {
 
     return data;
   }
+
+  getUnsignedTx = async (unsignedTransactionId: string) => {
+    const { data, error } = await this.supabase
+      .from("unsigned_transactions")
+      .select("*, partial_signatures(*)")
+      .eq("id", unsignedTransactionId);
+
+    if (error) {
+      console.error("error unsignedTx", error.message);
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  broadcastTx = async (unsignedTransactionId: string, blockchainTxId: string) => {
+    const { error } = await this.supabase.rpc("broadcast_tx", {
+      _unsigned_tx_id: unsignedTransactionId,
+      _blockchain_txid: blockchainTxId,
+    });
+
+    if (error) {
+      console.error("error broadcastTx", error.message);
+      throw new Error(error.message);
+    }
+  }
 }
 export default Supabase;

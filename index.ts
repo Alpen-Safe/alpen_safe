@@ -107,6 +107,11 @@ userWalletRouter.post(
   walletController.addLedgerPolicy,
 );
 
+userWalletRouter.post(
+  "/tx/finalize",
+  walletController.finalizeTransactionValidator,
+  walletController.finalizeTransaction,
+);
 
 
 // --- Admin ---

@@ -339,5 +339,59 @@ class WalletManager {
       isComplete: is_complete,
     };
   }
+
+  async finalizeTransaction(unsignedTransactionId: string) {
+    const unsignedTxResult = await this.supabase.getUnsignedTx(unsignedTransactionId);
+
+    if (!unsignedTxResult || unsignedTxResult.length === 0) {
+      return {
+        error: "Transaction not found",
+        status: 404,
+      };
+    }
+
+    const unsignedTx = unsignedTxResult[0];
+
+    const { is_complete, partial_signatures, is_broadcasted, psbt_base64 } = unsignedTx;
+    if (!is_complete) {
+      return {
+        error: "Transaction needs more signatures",
+      };
+    }
+
+    if (is_broadcasted) {
+      return {
+        error: "Transaction already broadcasted",
+        status: 400,
+      };
+    }
+
+    const sigs = partial_signatures.map((sig) => ({
+      inputIndex: sig.input_index,
+      signature: sig.signature,
+      pubkey: sig.pubkey,
+      tapleafHash: sig.tapleaf_hash,
+    } as PartialSignature));
+
+    const { psbt, isComplete } = this.bitcoinWallet.applyPartialSignatures(psbt_base64, sigs);
+    if (!isComplete) {
+      // this should never happen
+      throw new Error("The combined partial signatures are not complete");
+    }
+
+    const hex = psbt.toHex();
+
+    // Broadcast the transaction
+
+    const txid = await this.esplora.postTransaction(hex);
+
+    // Updates the transaction data in the database
+    await this.supabase.broadcastTx(unsignedTransactionId, txid);
+
+    return {
+      isComplete: is_complete,
+      txid,
+    };
+  }
 }
 export default WalletManager;

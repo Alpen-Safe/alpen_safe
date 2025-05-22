@@ -492,6 +492,7 @@ export type Database = {
           psbt_base64: string
           signatures_count: number
           total_spent: number
+          tx_id: number | null
           wallet_id: string
         }
         Insert: {
@@ -507,6 +508,7 @@ export type Database = {
           psbt_base64: string
           signatures_count?: number
           total_spent?: number
+          tx_id?: number | null
           wallet_id: string
         }
         Update: {
@@ -522,9 +524,17 @@ export type Database = {
           psbt_base64?: string
           signatures_count?: number
           total_spent?: number
+          tx_id?: number | null
           wallet_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "unsigned_transactions_tx_id_fkey"
+            columns: ["tx_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "unsigned_transactions_wallet_id_fkey"
             columns: ["wallet_id"]
@@ -718,6 +728,10 @@ export type Database = {
       }
     }
     Functions: {
+      broadcast_tx: {
+        Args: { _unsigned_tx_id: string; _blockchain_txid: string }
+        Returns: undefined
+      }
       create_addresses: {
         Args: { _wallet_id: string; _addresses: Json }
         Returns: undefined
