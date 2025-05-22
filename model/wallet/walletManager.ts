@@ -362,7 +362,6 @@ class WalletManager {
     if (is_broadcasted) {
       return {
         error: "Transaction already broadcasted",
-        status: 400,
       };
     }
 
