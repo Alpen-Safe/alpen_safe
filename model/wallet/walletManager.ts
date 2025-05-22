@@ -412,9 +412,7 @@ class WalletManager {
       }
 
       console.error("error broadcasting transaction", error);
-      return {
-        error: "Failed to broadcast transaction",
-      };
+      throw error;
     }
 
     // Updates the transaction data in the database
