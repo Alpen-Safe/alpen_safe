@@ -340,7 +340,7 @@ class WalletManager {
     };
   }
 
-  async finalizeTransaction(unsignedTransactionId: string) {
+  async broadcastTransaction(unsignedTransactionId: string) {
     const unsignedTxResult = await this.supabase.getUnsignedTx(unsignedTransactionId);
 
     if (!unsignedTxResult || unsignedTxResult.length === 0) {
@@ -378,10 +378,11 @@ class WalletManager {
       throw new Error("The combined partial signatures are not complete");
     }
 
-    const hex = psbt.toHex();
+    // Extract the transaction from the PSBT
+    const tx = psbt.extractTransaction();
+    const hex = tx.toHex();
 
     // Broadcast the transaction
-
     const txid = await this.esplora.postTransaction(hex);
 
     // Updates the transaction data in the database

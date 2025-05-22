@@ -198,13 +198,13 @@ class WalletController extends BaseController {
     return this.execController(req, res, func);
   };
 
-  finalizeTransactionValidator = [
+  boradcastTransactionValidator = [
     body("unsignedTransactionId").exists().isString().withMessage(
       "unsignedTransactionId must be a string",
     ),
   ];
 
-  finalizeTransaction = (req: Request, res: Response) => {
+  boradcastTransaction = (req: Request, res: Response) => {
     const func = () => {
       const { unsignedTransactionId } = req.body;
 
@@ -213,7 +213,7 @@ class WalletController extends BaseController {
         return error;
       }
 
-      return this.walletManager.finalizeTransaction(unsignedTransactionId);
+      return this.walletManager.broadcastTransaction(unsignedTransactionId);
     };
 
     return this.execController(req, res, func);

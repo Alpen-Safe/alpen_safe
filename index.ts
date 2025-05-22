@@ -108,9 +108,9 @@ userWalletRouter.post(
 );
 
 userWalletRouter.post(
-  "/tx/finalize",
-  walletController.finalizeTransactionValidator,
-  walletController.finalizeTransaction,
+  "/tx/broadcast",
+  walletController.boradcastTransactionValidator,
+  walletController.boradcastTransaction,
 );
 
 
