@@ -107,6 +107,11 @@ userWalletRouter.post(
   walletController.addLedgerPolicy,
 );
 
+userWalletRouter.post(
+  "/tx/broadcast",
+  walletController.boradcastTransactionValidator,
+  walletController.boradcastTransaction,
+);
 
 
 // --- Admin ---

@@ -5,6 +5,7 @@ import { Network, networks } from "bitcoinjs-lib";
 import { Buffer } from "node:buffer";
 import { BIP32Interface } from "bip32";
 import { ECPairFactory, ECPairInterface } from "ecpair";
+import { PartialSignature } from "../../types";
 
 const bip32 = BIP32Factory(ecc);
 const ECPair = ECPairFactory(ecc);
@@ -274,8 +275,8 @@ class BitcoinWallet {
           // Store the derivation path (this is the path AFTER the xpub level)
           userDerivationPaths.push(`${changeIndex}/${addressIndex}`);
         }
-      } catch (error: any) {
-        throw new Error(`Failed to derive key from xpub: ${error.message}`);
+      } catch (error: unknown) {
+        throw new Error(`Failed to derive key from xpub: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -499,7 +500,7 @@ class BitcoinWallet {
 
       psbt.signInput(inputIndex, signerAdapter);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -520,9 +521,74 @@ class BitcoinWallet {
       });
       psbtCopy.finalizeAllInputs();
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
+  }
+
+  /**
+   * Apply external partial signatures to a PSBT
+   * @param psbtBase64 Base64-encoded PSBT
+   * @param signatures Array of partial signatures to apply
+   * @returns The updated PSBT with signatures applied
+   */
+  public applyPartialSignatures(
+    psbtBase64: string,
+    signatures: PartialSignature[],
+  ) {
+    // Parse the PSBT
+    const psbt = bitcoin.Psbt.fromBase64(psbtBase64, { network: this.network });
+    
+    let signaturesAdded = 0;
+    
+    // Apply each signature to the appropriate input
+    for (const sig of signatures) {
+      try {
+        const inputIndex = sig.inputIndex;
+        const pubkey = Buffer.from(sig.pubkey, 'hex');
+        const signature = Buffer.from(sig.signature, 'hex');
+        
+        // If taproot signature (has tapleafHash)
+        if (sig.tapleafHash) {
+          const tapleafHash = Buffer.from(sig.tapleafHash, 'hex');
+          psbt.updateInput(inputIndex, {
+            tapScriptSig: [
+              {
+                leafHash: tapleafHash,
+                signature: signature,
+                pubkey: pubkey,
+              },
+            ],
+          });
+        } else {
+          // Regular signature
+          psbt.updateInput(inputIndex, {
+            partialSig: [
+              {
+                pubkey: pubkey,
+                signature: signature,
+              },
+            ],
+          });
+        }
+        
+        signaturesAdded++;
+      } catch (error) {
+        console.error(`Failed to apply signature: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    
+    // Check if the PSBT is complete
+    const isComplete = this.isPsbtComplete(psbt);
+    if (isComplete) {
+      psbt.finalizeAllInputs();
+    }
+    
+    return {
+      psbt: psbt,
+      isComplete,
+      signaturesAdded,
+    };
   }
 }
 
