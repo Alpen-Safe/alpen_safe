@@ -327,7 +327,7 @@ class Supabase {
     return data;
   }
 
-  broadcastTx = async (unsignedTransactionId: string, blockchainTxId: string) => {
+  updateWithBroadcastedTx = async (unsignedTransactionId: string, blockchainTxId: string) => {
     const { error } = await this.supabase.rpc("broadcast_tx", {
       _unsigned_tx_id: unsignedTransactionId,
       _blockchain_txid: blockchainTxId,

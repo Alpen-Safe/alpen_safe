@@ -383,10 +383,42 @@ class WalletManager {
     const hex = tx.toHex();
 
     // Broadcast the transaction
-    const txid = await this.esplora.postTransaction(hex);
+    let txid = "";
+    try {
+      txid = await this.esplora.postTransaction(hex);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Transaction already in block chain")) {
+        // if the transaction is already in the block chain, we need to get the txid from the transaction
+        console.log("transaction already in block chain, getting the txid from the transaction");
+
+        txid = tx.getId();
+
+        console.log("txid", txid);
+
+        const txFromEsplora = await this.esplora.getTransaction(txid);
+        if (!txFromEsplora) {
+          throw new Error("Transaction not found in esplora");
+        }
+
+        console.log("transaction already in block chain, using the txid from esplora");
+
+        // only update the transaction in DB
+        await this.supabase.updateWithBroadcastedTx(unsignedTransactionId, txid);
+
+        return {
+          isComplete: is_complete,
+          txid,
+        };
+      }
+
+      console.error("error broadcasting transaction", error);
+      return {
+        error: "Failed to broadcast transaction",
+      };
+    }
 
     // Updates the transaction data in the database
-    await this.supabase.broadcastTx(unsignedTransactionId, txid);
+    await this.supabase.updateWithBroadcastedTx(unsignedTransactionId, txid);
 
     return {
       isComplete: is_complete,
