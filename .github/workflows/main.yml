@@ -115,8 +115,8 @@ jobs:
     needs: [migrate-db]
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Dev
-      if: github.ref == 'refs/heads/dev'
+    - name: Deploy to Dev Denis
+      if: github.ref == 'refs/heads/main'
       run: |
           curl -f \
             -X POST \
