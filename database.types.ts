@@ -788,6 +788,14 @@ export type Database = {
           output_value: number
         }[]
       }
+      get_tx_input_value: {
+        Args: { _transaction_id: string }
+        Returns: number
+      }
+      get_tx_output_value: {
+        Args: { _transaction_id: string }
+        Returns: number
+      }
       get_wallet_data: {
         Args: { _wallet_id: string }
         Returns: {
