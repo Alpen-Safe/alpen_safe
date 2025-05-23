@@ -110,3 +110,17 @@ jobs:
 
       - run: supabase link --project-ref $SUPABASE_PROJECT_ID
       - run: supabase db push --include-all
+
+  deploy:
+    needs: [migrate-db]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy to Dev
+      if: github.ref == 'refs/heads/dev'
+      run: |
+          curl -f \
+            -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.ACTIONS_GITHUB_PAT_DANIEL }}" \
+            --data '{"event_type": "deploy-dev"}' \
+            https://api.github.com/repos/Alpen-Safe/infra/dispatches
