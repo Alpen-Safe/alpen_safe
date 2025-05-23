@@ -338,5 +338,18 @@ class Supabase {
       throw new Error(error.message);
     }
   }
+
+  updatePrice = async (currencySymbol: string, fiatCurrency: string, price: number) => {
+    const { error } = await this.supabase.from("prices").upsert({
+      currency_symbol: currencySymbol,
+      fiat_currency: fiatCurrency,
+      price: price,
+    });
+
+    if (error) {
+      console.error("error updatePrice", error.message);
+      throw new Error(error.message);
+    }
+  }
 }
 export default Supabase;

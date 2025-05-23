@@ -208,6 +208,30 @@ export type Database = {
           },
         ]
       }
+      prices: {
+        Row: {
+          created_at: string | null
+          currency_symbol: string
+          fiat_currency: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency_symbol: string
+          fiat_currency: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency_symbol?: string
+          fiat_currency?: string
+          price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       public_keys: {
         Row: {
           account_node_derivation_path: string

@@ -22,6 +22,8 @@ import TransactionListenerController from "./controller/transactionLitenerContro
 import BitcoinMonitor from "./model/monitoring/bitcoinMonitor";
 import Esplora from "./api/esplora";
 
+import "./cron/cronJobs";
+
 const supabaseClient = createClient(SUPABASE_URL, SUPABSE_SERVICE_KEY);
 const supabase = new Supabase({ supabase: supabaseClient });
 const bitcoinWallet = new BitcoinWallet({
