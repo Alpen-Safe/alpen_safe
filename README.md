@@ -4,7 +4,9 @@
 
 Alpen Safe is a sophisticated Bitcoin multi-signature wallet management service built with Node.js and TypeScript. It provides secure 2-of-3 multi-signature wallet creation, transaction management, and real-time Bitcoin blockchain monitoring with a robust architecture designed for production Bitcoin applications.
 
-**Roadmap**: The service is designed with extensibility in mind and will support 3-of-5 multi-signature wallets and general m-of-n wallet configurations in future releases.
+**Roadmap**: The service is designed with extensibility in mind and will support:
+- 3-of-5 multi-signature wallets and general m-of-n wallet configurations
+- Additional blockchain networks beyond Bitcoin in future releases
 
 ## Architecture
 
@@ -25,7 +27,7 @@ The application follows a layered architecture pattern:
 - **Multi-Signature Security**: Currently supports 2-of-3 multi-signature wallets where users control 2 keys and the server manages 1 key. Designed for future expansion to 3-of-5 and general m-of-n configurations
 - **Real-time Monitoring**: ZMQ-based Bitcoin blockchain monitoring for instant transaction updates
 - **Type-Safe Database**: Full TypeScript integration with Supabase PostgreSQL
-- **Modular Design**: Clean separation of concerns with dependency injection
+- **Modular Design**: Clean separation of concerns with dependency injection for easy blockchain extensibility
 - **Production Ready**: Docker containerization and comprehensive error handling
 
 ## Technology Stack
@@ -40,6 +42,7 @@ The application follows a layered architecture pattern:
   - `tiny-secp256k1` for elliptic curve cryptography
 - **Blockchain Monitoring**: ZeroMQ (`zeromq`) for real-time Bitcoin node communication
 - **External APIs**: Esplora API for blockchain data, CoinGecko for price feeds
+- **Architecture**: Modular design supports future integration of additional blockchain networks
 
 ### Development & Testing
 - **Testing**: Mocha with Chai assertions and Sinon for mocking
@@ -62,6 +65,7 @@ The application follows a layered architecture pattern:
 - **Hierarchical Deterministic (HD) Wallets**: BIP32-compliant key derivation
 - **Address Generation**: Automatic receive and change address derivation
 - **Wallet Descriptors**: Bitcoin Core compatible wallet descriptors
+- **Blockchain Agnostic Design**: Architecture supports future expansion to other blockchain networks
 
 ### 2. Transaction Processing
 - **PSBT (Partially Signed Bitcoin Transactions)**: Industry standard for multi-sig transactions
