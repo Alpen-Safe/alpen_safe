@@ -344,6 +344,29 @@ ADMIN_SECRET=your-admin-secret
 PORT=3000  # Server port (default: 3000)
 ```
 
+## Background Services
+
+### Cron Jobs
+- **Price Updates**: CoinGecko API integration runs every 5 minutes
+- **Market Data**: Automatic cryptocurrency price tracking
+
+### Real-Time Monitoring
+- **Transaction Listener**: ZMQ connection to Bitcoin Core for real-time transaction monitoring
+- **Block Listener**: New block processing and confirmation updates
+- **Address Monitoring**: Automatic UTXO detection for all wallet addresses
+
+## Monitoring and Observability
+
+### Logging
+- Structured console logging
+- Transaction processing logs
+- Error tracking and monitoring
+
+### Health Checks
+- Database connectivity monitoring
+- Bitcoin node connection status
+- ZMQ subscription health
+
 ## Development Setup
 
 ### Prerequisites
@@ -388,6 +411,16 @@ npm run lint         # Lint and fix code
 npm run serve:prod   # Build and run production server
 ```
 
+## Testing
+
+The application includes comprehensive test coverage:
+
+```bash
+npm test                    # Run all tests
+npm run test:watch         # Watch mode for development
+npm run test:coverage      # Generate coverage report
+```
+
 ## Production Deployment
 
 ### Docker Deployment
@@ -411,39 +444,6 @@ Enable ZMQ in your `bitcoin.conf`:
 zmqpubrawblock=tcp://127.0.0.1:28332
 zmqpubrawtx=tcp://127.0.0.1:28332
 ```
-
-## Background Services
-
-### Cron Jobs
-- **Price Updates**: CoinGecko API integration runs every 5 minutes
-- **Market Data**: Automatic cryptocurrency price tracking
-
-### Real-Time Monitoring
-- **Transaction Listener**: ZMQ connection to Bitcoin Core for real-time transaction monitoring
-- **Block Listener**: New block processing and confirmation updates
-- **Address Monitoring**: Automatic UTXO detection for all wallet addresses
-
-## Testing
-
-The application includes comprehensive test coverage:
-
-```bash
-npm test                    # Run all tests
-npm run test:watch         # Watch mode for development
-npm run test:coverage      # Generate coverage report
-```
-
-## Monitoring and Observability
-
-### Logging
-- Structured console logging
-- Transaction processing logs
-- Error tracking and monitoring
-
-### Health Checks
-- Database connectivity monitoring
-- Bitcoin node connection status
-- ZMQ subscription health
 
 ## Contributing
 
