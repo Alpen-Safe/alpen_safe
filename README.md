@@ -210,30 +210,6 @@ The application uses Supabase PostgreSQL with the following key tables:
 - **`transactions`**: Confirmed blockchain transactions
 - **`prices`**: Cryptocurrency price data from external APIs
 
-## Environment Configuration
-
-Required environment variables:
-
-```bash
-# Database
-SUPABASE_URL=https://your-project.supabase.co
-SUPABSE_SERVICE_KEY=your-service-key
-
-# Bitcoin Network
-NETWORK=testnet  # mainnet, testnet, or signet
-SERVER_SEED=your-hex-seed  # Server wallet seed (hex format)
-
-# Bitcoin Node Integration
-ZMQ_URL=tcp://localhost:28332  # Bitcoin Core ZMQ endpoint
-ESPLORA_URL=https://blockstream.info/testnet/api  # Esplora API endpoint
-
-# Security
-ADMIN_SECRET=your-admin-secret
-
-# Optional
-PORT=3000  # Server port (default: 3000)
-```
-
 ## Security Considerations
 
 ### Key Management
@@ -344,6 +320,29 @@ const accountXpub = accountNode.neutered().toBase58();
 ```
 
 This xpub can be safely shared with users and imported into hardware wallet software for address verification and transaction validation.
+
+## Environment Configuration
+
+Required environment variables:
+
+```bash
+# Database
+SUPABASE_URL=https://your-project.supabase.co
+SUPABSE_SERVICE_KEY=your-service-key
+
+# Bitcoin Network
+NETWORK=testnet  # mainnet, testnet, or signet
+
+# Bitcoin Node Integration
+ZMQ_URL=tcp://localhost:28332  # Bitcoin Core ZMQ endpoint
+ESPLORA_URL=https://blockstream.info/testnet/api  # Esplora API endpoint
+
+# Security
+ADMIN_SECRET=your-admin-secret
+
+# Optional
+PORT=3000  # Server port (default: 3000)
+```
 
 ## Development Setup
 
