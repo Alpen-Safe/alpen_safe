@@ -88,7 +88,7 @@ The application follows a layered architecture pattern:
 ## API Endpoints
 
 ### Authentication
-All API endpoints require JWT authentication via the `Authorization: Bearer <token>` header.
+All API endpoints require JWT authentication via the `Authorization: Bearer <token>` header. Authentication is provided by Supabase user management system.
 
 ### User Endpoints (`/user`)
 
@@ -183,6 +183,8 @@ All API endpoints require JWT authentication via the `Authorization: Bearer <tok
 - `POST /user/wallet/:walletId/scan` - Trigger wallet rescan for transactions
 
 ### Admin Endpoints (`/admin`)
+
+**Note**: Admin endpoints are not exposed externally and are used internally for debugging purposes only. They will be removed in the production application.
 
 All admin endpoints require an additional `X-Admin-Secret` header.
 
