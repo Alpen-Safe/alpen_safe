@@ -234,85 +234,6 @@ ADMIN_SECRET=your-admin-secret
 PORT=3000  # Server port (default: 3000)
 ```
 
-## Development Setup
-
-### Prerequisites
-- Node.js 20+
-- Bitcoin Core node with ZMQ enabled
-- Supabase project
-
-### Installation
-
-1. **Clone and install dependencies**:
-   ```bash
-   git clone <repository>
-   cd alpen_safe
-   npm install
-   ```
-
-2. **Configure environment**:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Setup Supabase**:
-   ```bash
-   npx supabase start
-   npm run reset-db  # Apply migrations and generate types
-   ```
-
-4. **Start development server**:
-   ```bash
-   npm run dev
-   ```
-
-### Available Scripts
-
-```bash
-npm run dev          # Development with hot reload
-npm run build        # Compile TypeScript
-npm run start        # Run compiled JavaScript
-npm run test         # Run test suite
-npm run lint         # Lint and fix code
-npm run serve:prod   # Build and run production server
-```
-
-## Production Deployment
-
-### Docker Deployment
-
-```bash
-# Build image
-docker build -t alpen-safe .
-
-# Run container
-docker run -p 3000:3000 \
-  -e SUPABASE_URL=your-url \
-  -e SUPABSE_SERVICE_KEY=your-key \
-  # ... other environment variables
-  alpen-safe
-```
-
-### Bitcoin Core Configuration
-
-Enable ZMQ in your `bitcoin.conf`:
-```
-zmqpubrawblock=tcp://127.0.0.1:28332
-zmqpubrawtx=tcp://127.0.0.1:28332
-```
-
-## Background Services
-
-### Cron Jobs
-- **Price Updates**: CoinGecko API integration runs every 5 minutes
-- **Market Data**: Automatic cryptocurrency price tracking
-
-### Real-Time Monitoring
-- **Transaction Listener**: ZMQ connection to Bitcoin Core for real-time transaction monitoring
-- **Block Listener**: New block processing and confirmation updates
-- **Address Monitoring**: Automatic UTXO detection for all wallet addresses
-
 ## Security Considerations
 
 ### Key Management
@@ -423,6 +344,85 @@ const accountXpub = accountNode.neutered().toBase58();
 ```
 
 This xpub can be safely shared with users and imported into hardware wallet software for address verification and transaction validation.
+
+## Development Setup
+
+### Prerequisites
+- Node.js 20+
+- Bitcoin Core node with ZMQ enabled
+- Supabase project
+
+### Installation
+
+1. **Clone and install dependencies**:
+   ```bash
+   git clone <repository>
+   cd alpen_safe
+   npm install
+   ```
+
+2. **Configure environment**:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Setup Supabase**:
+   ```bash
+   npx supabase start
+   npm run reset-db  # Apply migrations and generate types
+   ```
+
+4. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+
+### Available Scripts
+
+```bash
+npm run dev          # Development with hot reload
+npm run build        # Compile TypeScript
+npm run start        # Run compiled JavaScript
+npm run test         # Run test suite
+npm run lint         # Lint and fix code
+npm run serve:prod   # Build and run production server
+```
+
+## Production Deployment
+
+### Docker Deployment
+
+```bash
+# Build image
+docker build -t alpen-safe .
+
+# Run container
+docker run -p 3000:3000 \
+  -e SUPABASE_URL=your-url \
+  -e SUPABSE_SERVICE_KEY=your-key \
+  # ... other environment variables
+  alpen-safe
+```
+
+### Bitcoin Core Configuration
+
+Enable ZMQ in your `bitcoin.conf`:
+```
+zmqpubrawblock=tcp://127.0.0.1:28332
+zmqpubrawtx=tcp://127.0.0.1:28332
+```
+
+## Background Services
+
+### Cron Jobs
+- **Price Updates**: CoinGecko API integration runs every 5 minutes
+- **Market Data**: Automatic cryptocurrency price tracking
+
+### Real-Time Monitoring
+- **Transaction Listener**: ZMQ connection to Bitcoin Core for real-time transaction monitoring
+- **Block Listener**: New block processing and confirmation updates
+- **Address Monitoring**: Automatic UTXO detection for all wallet addresses
 
 ## Testing
 
