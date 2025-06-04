@@ -16,3 +16,5 @@ yarn-error.log*
 
 seed_data_with_auth.sql
 seed_data_only.sql
+
+README.pdf

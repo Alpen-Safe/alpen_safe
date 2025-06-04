@@ -316,7 +316,7 @@ zmqpubrawtx=tcp://127.0.0.1:28332
 ## Security Considerations
 
 ### Key Management
-- Server seed stored securely (consider using secrets manager)
+- Server seed to be stored in a key manager (later to stored on HSM)
 - User keys never stored on server
 - Multi-signature ensures no single point of failure
 
@@ -331,6 +331,98 @@ zmqpubrawtx=tcp://127.0.0.1:28332
 - Partial signature verification
 - Hardware wallet policy support
 - Transaction malleability protection
+
+## Server Key Derivation
+
+### Derivation Scheme
+
+Alpen Safe implements **BIP48** (Multi-Signature HD Wallets) for server key derivation, ensuring compatibility with hardware wallets and industry standards.
+
+#### Derivation Path Structure
+```
+m / purpose' / coin_type' / account' / script_type' / change / address_index
+m / 48'      / 0' (or 1') / account' / 2'          / 0 or 1 / 0, 1, 2...
+```
+
+Where:
+- **Purpose**: `48'` (BIP48 for multi-signature wallets)
+- **Coin Type**: `0'` for Bitcoin mainnet, `1'` for testnet/signet
+- **Account**: Unique account identifier for each wallet (e.g., `0'`, `1'`, `2'`...)
+- **Script Type**: `2'` for P2WSH (Pay-to-Witness-Script-Hash, native SegWit)
+- **Change**: `0` for receive addresses, `1` for change addresses
+- **Address Index**: Sequential address index (0, 1, 2, 3...)
+
+#### Example Derivation Paths
+```bash
+# Master account node (used for xpub generation)
+m/48'/0'/0'/2'
+
+# Receive addresses
+m/48'/0'/0'/2'/0/0  # First receive address
+m/48'/0'/0'/2'/0/1  # Second receive address
+
+# Change addresses  
+m/48'/0'/0'/2'/1/0  # First change address
+m/48'/0'/0'/2'/1/1  # Second change address
+```
+
+### Technical Implementation
+
+#### Libraries Used
+- **`bip32`**: Hierarchical Deterministic (HD) key derivation
+- **`bitcoinjs-lib`**: Bitcoin protocol primitives and transaction handling
+- **`tiny-secp256k1`**: Elliptic curve cryptography operations
+- **`ecpair`**: Bitcoin key pair management
+
+#### Key Derivation Process
+
+1. **Master Seed**: Server starts with a secure master seed (256-bit entropy)
+   ```typescript
+   const masterNode = bip32.fromSeed(serverSeed, network);
+   ```
+
+2. **Account Node Derivation**: Each wallet gets a unique hardened account path
+   ```typescript
+   const hardenedPath = `m/48'/${coinType}'/${accountId}'/2'`;
+   const accountNode = masterNode.derivePath(hardenedPath);
+   ```
+
+3. **Address Key Derivation**: Individual address keys use non-hardened derivation
+   ```typescript
+   const childPath = `${changeIndex}/${addressIndex}`;
+   const addressNode = accountNode.derivePath(childPath);
+   ```
+
+#### Security Features
+
+- **Hardened Derivation**: Account-level keys use hardened derivation (indicated by `'`) for enhanced security
+- **Account Isolation**: Each wallet uses a separate account index, preventing key leakage between wallets  
+- **BIP48 Compliance**: Full compatibility with hardware wallets and industry-standard software
+- **Native SegWit**: Uses P2WSH for lower fees and better security
+
+#### Wallet Descriptor Generation
+
+The service generates Bitcoin Core compatible wallet descriptors:
+
+```
+wsh(sortedmulti(2,xpub1/<0;1>/*,xpub2/<0;1>/*,xpub3/<0;1>/*))
+```
+
+This descriptor:
+- Uses `wsh()` for P2WSH (native SegWit)
+- Implements `sortedmulti()` for deterministic key ordering
+- Supports both receive (`0`) and change (`1`) address derivation
+- Compatible with Sparrow Wallet, Electrum, and other descriptor-aware software
+
+#### Extended Public Key (xpub) Sharing
+
+For each wallet account, the server generates an account-level xpub:
+```typescript
+const accountXpub = accountNode.neutered().toBase58();
+// Example: xpub6C8k9...
+```
+
+This xpub can be safely shared with users and imported into hardware wallet software for address verification and transaction validation.
 
 ## Testing
 
